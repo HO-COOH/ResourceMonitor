@@ -1,9 +1,9 @@
 # ResourceMonitor
 A Visual Studio extension for monitoring CPU and RAM usage.
 ## Usage
-1. ``Tools`` -> ``Start Monitor``
+~~1. ``Tools`` -> ``Start Monitor``~~ No need. It automatically loads now :)
 ![](./assets/1.png)
-2. Now it will appear in the status bar.
+1. Now it will appear in the status bar.
 ![](./assets/2.png)
 
 ## Plans
