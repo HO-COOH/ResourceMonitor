@@ -117,9 +117,6 @@ namespace ResourceMonitor
                     statusBar.FreezeOutput(0);
                 var mem = GetRamUsage();
                 statusBar.SetText($"CPU: {GetCpuUsage()} %  RAM: {mem} MB / {(float)memtotal/1024.0:0.#} GB ({(float)mem/memtotal *100 :##} %)");
-                statusBar.FreezeOutput(1);
-                statusBar.FreezeOutput(0);
-                statusBar.Clear();
                 System.Threading.Thread.Sleep(1000);
             }
         }
