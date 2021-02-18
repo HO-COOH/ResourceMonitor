@@ -9,6 +9,8 @@ using Task = System.Threading.Tasks.Task;
 using System.Diagnostics;
 using Microsoft.VisualBasic.Devices;
 using Microsoft.VisualStudio.Debugger.Interop;
+using EnvDTE;
+using System.IO;
 
 namespace ResourceMonitor
 {
@@ -97,18 +99,28 @@ namespace ResourceMonitor
             Instance = new Command1(package, commandService);
         }
 
-        /// <summary>
-        /// This function is the callback used to execute the command when the menu item is clicked.
-        /// See the constructor to see how the menu item is associated with this function using
-        /// OleMenuCommandService service and MenuCommand class.
-        /// </summary>
-        /// <param name="sender">Event sender.</param>
-        /// <param name="e">Event args.</param>
-        
-        private async void DoUpdate()
+        private long GetSolutionSize(string path)
+        {
+            if (Directory.Exists(path))
+            {
+                var info = new DirectoryInfo(path);
+                long size = 0;
+                foreach (var fileInfo in info.EnumerateFiles("*", SearchOption.AllDirectories))
+                {
+                    Console.WriteLine($"{fileInfo.FullName} -> {fileInfo.Length}");
+                    size += fileInfo.Length;
+                }
+                return size;
+            }
+            else
+                return 0;
+        }
+
+        private async Task DoUpdate()
         {
             while (true)
             {
+                //await JoinableTaskFactory.SwitchToMainThreadAsync(DisposalToken);
                 var statusBar = await ServiceProvider.GetServiceAsync(typeof(SVsStatusbar)) as IVsStatusbar;
                 int frozen;
 
@@ -116,7 +128,15 @@ namespace ResourceMonitor
                 if (frozen != 0)
                     statusBar.FreezeOutput(0);
                 var mem = GetRamUsage();
-                statusBar.SetText($"CPU: {GetCpuUsage()} %  RAM: {mem} MB / {(float)memtotal/1024.0:0.#} GB ({(float)mem/memtotal *100 :##} %)");
+
+                var env = await ServiceProvider.GetServiceAsync(typeof(SDTE)) as DTE;
+                var solution = env.Solution;
+                var solutionFile = solution.FullName;
+                var solutionDir = new FileInfo(solutionFile).Directory;
+                var size = GetSolutionSize(solutionDir.FullName) / 1024 / 1024;
+
+
+                statusBar.SetText($"CPU: {GetCpuUsage()} %  RAM: {mem} MB / {(float)memtotal/1024.0:0.#} GB ({(float)mem/memtotal *100 :##} %)  Disk: {size} MB");
                 System.Threading.Thread.Sleep(1000);
             }
         }
@@ -125,8 +145,10 @@ namespace ResourceMonitor
             var info = new Microsoft.VisualBasic.Devices.ComputerInfo();
             memtotal = (int)(info.TotalPhysicalMemory / 1024 / 1024);
 
-            Thread update = new Thread(DoUpdate);
-            update.Start();
+
+
+            await Task.Run(() => DoUpdate());
+
         }
     }
 }
