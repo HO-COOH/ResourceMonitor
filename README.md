@@ -1,5 +1,5 @@
 # ResourceMonitor
-A Visual Studio extension for monitoring CPU and RAM usage.
+A Visual Studio extension for monitoring CPU, RAM, disk and Battery usage.
 ## Download
 [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=HO-COOH.ResourceMonitor)
 ## Usage
@@ -9,9 +9,9 @@ A Visual Studio extension for monitoring CPU and RAM usage.
 ![](./assets/2.png)
 
 ## Plans
-- Add a setting menus for changing the refresh speed.
-- Add settings for displaying different things.
-- ~~Able to run on start up~~ √ (add a setting option for this too).
+- ~~Add a setting menus for changing the refresh speed.~~ √ 
+- ~~Add settings for displaying different things.~~ √ 
+- ~~Able to run on start up~~ √ 
 
 ### Note:
 Partially inspired by:

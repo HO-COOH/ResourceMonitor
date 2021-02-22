@@ -6,9 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
-using System.Diagnostics;
-using Microsoft.VisualBasic.Devices;
-using Microsoft.VisualStudio.Debugger.Interop;
 using EnvDTE;
 using System.IO;
 
@@ -20,17 +17,38 @@ namespace ResourceMonitor
     /// </summary>
     internal sealed class Command1: AsyncPackage
     {
-        static PerformanceCounter cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total", Environment.MachineName);
-        static PerformanceCounter ramCounter = new PerformanceCounter("Memory", "Available MBytes", true);
-        static int memtotal = 0;
-        public static int GetCpuUsage()
+        private static Disk disk;
+
+        /*Options*/
+        private static int refreshInterval = 1;
+
+        private bool showCPU;
+
+        private bool showRam;
+        private static SizeUnit ramUsageUnit;
+        private static SizeUnit ramTotalUnit;
+        private bool showVSRam;
+
+        private bool showDisk;
+
+        private bool showBatteryPercent;
+        private bool showBatteryTime;
+
+        private void UpdateSettings()
         {
-            return (int)cpuCounter.NextValue();
-        }
-        public static int GetRamUsage()
-        {
-            //System.Threading.Thread.Sleep(500);
-            return (memtotal - (int)ramCounter.NextValue());
+            var options = (OptionPage)GetDialogPage(typeof(OptionPage));
+
+            showCPU = options.ShowCPU;
+
+            showRam = options.ShowRAM;
+            ramUsageUnit = options.RamUsageUnit;
+            ramTotalUnit = options.TotalRamUnit;
+            showVSRam = options.ShowVSRAM;
+
+            showDisk = options.ShowDisk;
+            
+            showBatteryPercent = options.ShowBatteryPercent;
+            showBatteryTime = options.ShowBatteryTime;
         }
 
         /// <summary>
@@ -99,56 +117,109 @@ namespace ResourceMonitor
             Instance = new Command1(package, commandService);
         }
 
-        private long GetSolutionSize(string path)
+
+        private static string SizeUnitToStr(SizeUnit unit)
         {
-            if (Directory.Exists(path))
+            switch (unit)
             {
-                var info = new DirectoryInfo(path);
-                long size = 0;
-                foreach (var fileInfo in info.EnumerateFiles("*", SearchOption.AllDirectories))
-                {
-                    Console.WriteLine($"{fileInfo.FullName} -> {fileInfo.Length}");
-                    size += fileInfo.Length;
-                }
-                return size;
+                case SizeUnit.KB:
+                    return "KB";
+                case SizeUnit.MB:
+                    return "MB";
+                case SizeUnit.GB:
+                    return "GB";
             }
-            else
-                return 0;
+
+            return "";
         }
 
+        private async void GetSolutionDir()
+        {
+            try
+            {
+                var env = await ServiceProvider.GetServiceAsync(typeof(SDTE)) as DTE;
+                var solutionDir = new FileInfo(env.Solution.FullName);
+                disk = solutionDir.Extension.Length == 0 ? 
+                    new Disk(env.Solution.FullName) : 
+                    new Disk(solutionDir.Directory.FullName);
+            }
+            catch
+            {
+                disk = null;
+            }
+        }
         private async Task DoUpdate()
         {
+            var statusBar = await ServiceProvider.GetServiceAsync(typeof(SVsStatusbar)) as IVsStatusbar;
             while (true)
             {
-                //await JoinableTaskFactory.SwitchToMainThreadAsync(DisposalToken);
-                var statusBar = await ServiceProvider.GetServiceAsync(typeof(SVsStatusbar)) as IVsStatusbar;
-                int frozen;
+                UpdateSettings();
+                string str=string.Empty;
+                if (showCPU)
+                    str += $"CPU: {CPU.Usage} %";
+                if (showRam || showVSRam)
+                {
+                    str += $"  RAM: ";
+                    if (showVSRam)
+                    {
+                        if(ramUsageUnit != SizeUnit.GB)
+                            str += $"{RAM.VsUsage(ramUsageUnit):0.}";
+                        else
+                            str += $"{RAM.VsUsage(SizeUnit.GB):0.#}";
+                        str += SizeUnitToStr(ramUsageUnit);
+                    }
 
-                statusBar.IsFrozen(out frozen);
-                if (frozen != 0)
-                    statusBar.FreezeOutput(0);
-                var mem = GetRamUsage();
+                    if (showVSRam && showRam)
+                        str += " / ";
 
-                var env = await ServiceProvider.GetServiceAsync(typeof(SDTE)) as DTE;
-                var solution = env.Solution;
-                var solutionFile = solution.FullName;
-                var solutionDir = new FileInfo(solutionFile).Directory;
-                var size = GetSolutionSize(solutionDir.FullName) / 1024 / 1024;
+                    if (showRam)
+                    {
+                        if(ramTotalUnit!=SizeUnit.GB)
+                            str += $"{RAM.TotalUsage(ramTotalUnit):0.}";
+                        else
+                            str += $"{RAM.TotalUsage(SizeUnit.GB):0.#}";
+                        str += SizeUnitToStr(ramTotalUnit);
+                    }
+                }
 
+                if (showDisk)
+                {
+                    if(disk!=null)
+                        str += $"  Disk: {disk.SolutionSize(SizeUnit.MB):0.#}MB";
+                    else
+                        GetSolutionDir();
+                }
 
-                statusBar.SetText($"CPU: {GetCpuUsage()} %  RAM: {mem} MB / {(float)memtotal/1024.0:0.#} GB ({(float)mem/memtotal *100 :##} %)  Disk: {size} MB");
-                System.Threading.Thread.Sleep(1000);
+                if (showBatteryPercent || showBatteryTime)
+                {
+                    str += "  Battery:";
+                    if (showBatteryPercent)
+                        str += $" {Battery.BatteryPercent * 100} %";
+
+                    if (showBatteryTime)
+                    {
+                        var batteryRemain = Battery.BatteryRemains;
+                        str += $" {batteryRemain.Item1} h {batteryRemain.Item2} min";
+                    }
+                }
+
+                statusBar.GetText(out string existingText);
+                var index = existingText.IndexOf('|');
+                if(index >= 0)
+                    existingText = existingText.Substring(0, index - 1);
+                statusBar.FreezeOutput(0);
+                statusBar?.SetText(existingText + " |  " + str);
+
+                statusBar.FreezeOutput(1);
+                System.Threading.Thread.Sleep(refreshInterval * 1000);
+
             }
         }
+
+
         private async void Execute(object sender, EventArgs e)
         {
-            var info = new Microsoft.VisualBasic.Devices.ComputerInfo();
-            memtotal = (int)(info.TotalPhysicalMemory / 1024 / 1024);
-
-
-
-            await Task.Run(() => DoUpdate());
-
+            await Task.Run(DoUpdate);
         }
     }
 }
