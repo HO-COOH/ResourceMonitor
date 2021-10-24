@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>0965e028-b866-49bf-ada0-74af57302dca</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>VS2022</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Battery.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Command1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CPU.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Disk.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)RAM.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ResourceMonitorPackage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Units.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)VSPackage.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

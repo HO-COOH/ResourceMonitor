@@ -38,6 +38,8 @@ namespace ResourceMonitor
         {
             var options = (OptionPage)GetDialogPage(typeof(OptionPage));
 
+            refreshInterval = options.RefreshInterval;
+
             showCPU = options.ShowCPU;
 
             showRam = options.ShowRAM;
@@ -133,7 +135,7 @@ namespace ResourceMonitor
             return "";
         }
 
-        private async void GetSolutionDir()
+        private async Task GetSolutionDir()
         {
             try
             {

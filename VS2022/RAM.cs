@@ -14,12 +14,12 @@ namespace ResourceMonitor
             true
         );
 
-        private static readonly PerformanceCounter vsCounter = new PerformanceCounter(
-            "Process", 
-            "Working Set", 
-            "devenv", 
-            true
-        );
+        //private static readonly PerformanceCounter vsCounter = new PerformanceCounter(
+        //    "Process", 
+        //    "Working Set", 
+        //    "devenv", 
+        //    true
+        //); //This would throws InvalidArugumentException with VS2022 on Windows 11
 
         private static float ToKB(float value) => value / 1024.0f;
         private static float ToMB(float value) => value / 1024.0f / 1024.0f;
@@ -39,7 +39,7 @@ namespace ResourceMonitor
             return 0.0f;
         }
         public static float TotalUsage(SizeUnit unit = SizeUnit.MB) => ConvertUnit((float)total - totalCounter.NextValue(), unit);
-        public static float VsUsage(SizeUnit unit = SizeUnit.MB) => ConvertUnit(vsCounter.NextValue(), unit);
+        public static float VsUsage(SizeUnit unit = SizeUnit.MB) => ConvertUnit(Process.GetCurrentProcess().PrivateMemorySize64, unit);
 
     }
 }

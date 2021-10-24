@@ -19,7 +19,7 @@ namespace ResourceMonitor
                 int remainsInHour = remainsInSeconds / 60 / 60;
                 int remainsMinute = (remainsInSeconds - remainsInHour * 3600) / 60;
                 int remainsSecond = remainsInSeconds - remainsInHour * 3600 - remainsMinute * 60;
-                return (remainsInHour, remainsMinute, remainsInSeconds);
+                return (remainsInHour, remainsMinute, remainsSecond);
             }
         }
 
