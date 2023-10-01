@@ -8,6 +8,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
 using EnvDTE;
 using System.IO;
+using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell.Settings;
 
 namespace ResourceMonitor
 {
@@ -20,38 +22,9 @@ namespace ResourceMonitor
         private static Disk disk;
 
         /*Options*/
-        private static int refreshInterval = 1;
 
-        private bool showCPU;
 
-        private bool showRam;
-        private static SizeUnit ramUsageUnit;
-        private static SizeUnit ramTotalUnit;
-        private bool showVSRam;
-
-        private bool showDisk;
-
-        private bool showBatteryPercent;
-        private bool showBatteryTime;
-
-        private void UpdateSettings()
-        {
-            var options = (OptionPage)GetDialogPage(typeof(OptionPage));
-
-            refreshInterval = options.RefreshInterval;
-
-            showCPU = options.ShowCPU;
-
-            showRam = options.ShowRAM;
-            ramUsageUnit = options.RamUsageUnit;
-            ramTotalUnit = options.TotalRamUnit;
-            showVSRam = options.ShowVSRAM;
-
-            showDisk = options.ShowDisk;
-            
-            showBatteryPercent = options.ShowBatteryPercent;
-            showBatteryTime = options.ShowBatteryTime;
-        }
+        static public ShellSettingsManager ShellSettingsManager;
 
         /// <summary>
         /// Command ID.
@@ -117,7 +90,11 @@ namespace ResourceMonitor
 
             OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
             Instance = new Command1(package, commandService);
+
+            var service = (await Instance.ServiceProvider.GetServiceAsync(typeof(SVsSettingsManager))) as IVsSettingsManager;
+            ShellSettingsManager =  new ShellSettingsManager(service); 
         }
+
 
 
         private static string SizeUnitToStr(SizeUnit unit)
@@ -137,9 +114,14 @@ namespace ResourceMonitor
 
         private async Task GetSolutionDir()
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(DisposalToken);
             try
             {
-                var env = await ServiceProvider.GetServiceAsync(typeof(SDTE)) as DTE;
+                //var env = await ServiceProvider.GetServiceAsync(typeof(SDTE)) as DTE;  //This crash in VS2022
+                var env =  (EnvDTE80.DTE2)await ServiceProvider.GetServiceAsync(typeof(SDTE));
+                if (env.Solution == null || env.Solution.FullName.Length == 0)
+                    return;
+
                 var solutionDir = new FileInfo(env.Solution.FullName);
                 disk = solutionDir.Extension.Length == 0 ? 
                     new Disk(env.Solution.FullName) : 
@@ -155,50 +137,50 @@ namespace ResourceMonitor
             var statusBar = await ServiceProvider.GetServiceAsync(typeof(SVsStatusbar)) as IVsStatusbar;
             while (true)
             {
-                UpdateSettings();
+                var options = OptionPage.Fields;
                 string str=string.Empty;
-                if (showCPU)
+                if (options.showCPU)
                     str += $"CPU: {CPU.Usage} %";
-                if (showRam || showVSRam)
+                if (options.showRam || options.showVSRam)
                 {
                     str += $"  RAM: ";
-                    if (showVSRam)
+                    if (options.showVSRam)
                     {
-                        if(ramUsageUnit != SizeUnit.GB)
-                            str += $"{RAM.VsUsage(ramUsageUnit):0.}";
+                        if(options.ramUsageUnit != SizeUnit.GB)
+                            str += $"{RAM.VsUsage(options.ramUsageUnit):0.}";
                         else
                             str += $"{RAM.VsUsage(SizeUnit.GB):0.#}";
-                        str += SizeUnitToStr(ramUsageUnit);
+                        str += SizeUnitToStr(options.ramUsageUnit);
                     }
 
-                    if (showVSRam && showRam)
+                    if (options.showVSRam && options.showRam)
                         str += " / ";
 
-                    if (showRam)
+                    if (options.showRam)
                     {
-                        if(ramTotalUnit!=SizeUnit.GB)
-                            str += $"{RAM.TotalUsage(ramTotalUnit):0.}";
+                        if(options.ramTotalUnit !=SizeUnit.GB)
+                            str += $"{RAM.TotalUsage(options.ramTotalUnit):0.}";
                         else
                             str += $"{RAM.TotalUsage(SizeUnit.GB):0.#}";
-                        str += SizeUnitToStr(ramTotalUnit);
+                        str += SizeUnitToStr(options.ramTotalUnit);
                     }
                 }
 
-                if (showDisk)
+                if (options.showDisk)
                 {
                     if(disk!=null)
                         str += $"  Disk: {disk.SolutionSize(SizeUnit.MB):0.#}MB";
                     else
-                        GetSolutionDir();
+                        await GetSolutionDir();
                 }
 
-                if (showBatteryPercent || showBatteryTime)
+                if (options.showBatteryPercent || options.showBatteryTime)
                 {
                     str += "  Battery:";
-                    if (showBatteryPercent)
+                    if (options.showBatteryPercent)
                         str += $" {Battery.BatteryPercent * 100} %";
 
-                    if (showBatteryTime)
+                    if (options.showBatteryTime)
                     {
                         var batteryRemain = Battery.BatteryRemains;
                         str += $" {batteryRemain.Item1} h {batteryRemain.Item2} min";
@@ -213,7 +195,7 @@ namespace ResourceMonitor
                 statusBar?.SetText(existingText + " |  " + str);
 
                 statusBar.FreezeOutput(1);
-                System.Threading.Thread.Sleep(refreshInterval * 1000);
+                await Task.Delay(options.refreshInterval * 1000);
 
             }
         }

@@ -1,68 +1,197 @@
 ﻿using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Settings;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Settings;
 using Microsoft.Win32;
 using System;
 using System.ComponentModel;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
+using Microsoft.VisualStudio.Shell;
+using Newtonsoft.Json;
+using System.IO;
+using System.Linq;
 
 namespace ResourceMonitor
 {
+    [Serializable]
+    public class Fields
+    {
+        public int refreshInterval { get; set; } = 1;
+        public bool showCPU { get; set; } = true;
+        public bool showRam { get; set; } = true;
+        public SizeUnit ramUsageUnit { get; set; } = SizeUnit.MB;
+        public SizeUnit ramTotalUnit { get; set; } = SizeUnit.GB;
+        public bool showVSRam { get; set; } = true;
+        public bool showDisk { get; set; } = true;
+        public bool showBatteryPercent { get; set; } = true;
+        public bool showBatteryTime { get; set; } = true;
+    }
 
     public class OptionPage:DialogPage
     {
         [Category("Refresh")]
         [DisplayName("Refresh interval (seconds)")]
         [Description("Refresh interval (seconds)")]
-        public int RefreshInterval { get; set; } = 1;
+        public int RefreshInterval
+        {
+            get => Fields.refreshInterval;
+            set
+            {
+                Fields.refreshInterval = value;
+                save();
+            }
+        }
 
         [Category("CPU")]
         [DisplayName("Show CPU Usage")]
         [Description("Show CPU Usage")]
-        public bool ShowCPU { get; set; } = true;
+        public bool ShowCPU
+        {
+            get => Fields.showCPU;
+            set
+            {
+                Fields.showCPU = value;
+                save();
+            }
+        }
 
 
         [Category("RAM")]
         [DisplayName("Show Total system RAM Usage")]
         [Description("Show Total system RAM Usage")]
-        public bool ShowRAM { get; set; } = true;
+        public bool ShowRAM
+        {
+            get => Fields.showRam;
+            set
+            {
+                Fields.showRam = value;
+                save() ;
+            }
+        }
 
         [Category("RAM")]
         [DisplayName("Show RAM Usage of Visual Studio")]
         [Description("Show RAM Usage of Visual Studio")]
-        public bool ShowVSRAM { get; set; } = true;
+        public bool ShowVSRAM
+        {
+            get => Fields.showVSRam;
+            set
+            {
+                Fields.showVSRam = value;
+                save();
+            }
+        }
 
         [Category("RAM")]
         [DisplayName("Unit for Visual Studio RAM usage")]
         [Description("Unit for Visual Studio RAM usage")]
-        public SizeUnit RamUsageUnit { get; set; } = SizeUnit.MB;
+        public SizeUnit RamUsageUnit
+        {
+            get => Fields.ramUsageUnit;
+            set
+            {
+                Fields.ramUsageUnit = value;
+                save();
+            }
+        }
 
         [Category("RAM")]
         [DisplayName("Unit for total system RAM usage")]
         [Description("Unit for total system RAM usage")]
-        public SizeUnit TotalRamUnit { get; set; } = SizeUnit.GB;
+        public SizeUnit TotalRamUnit
+        {
+            get => Fields.ramTotalUnit;
+            set
+            {
+                Fields.ramTotalUnit = value;
+                save();
+            }
+        }
 
         [Category("Disk")]
         [DisplayName("Show Solution Disk Usage")]
         [Description("Show Solution Disk Usage")]
-        public bool ShowDisk { get; set; } = true;
+        public bool ShowDisk
+        {
+            get => Fields.showDisk;
+            set
+            {
+                Fields.showDisk = value;
+                save();
+            }
+        }
 
         [Category("Battery")]
         [DisplayName("Show Battery Percentage")]
         [Description("Show Battery Percentage")]
-        public bool ShowBatteryPercent { get; set; } = true;
+        public bool ShowBatteryPercent
+        {
+            get => Fields.showBatteryPercent;
+            set
+            {
+                Fields.showBatteryPercent = value;
+                save();
+            }
+        }
 
         [Category("Battery")]
         [DisplayName("Show Battery Remaining Time")]
         [Description("Show Battery Remaining Time")]
-        public bool ShowBatteryTime { get; set; } = true;
+        public bool ShowBatteryTime
+        {
+            get => Fields.showBatteryTime;
+            set
+            {
+                Fields.showBatteryTime = value;
+                save();
+            }
+        }
+
+        const string CollectionName = "ResourceMonitor.OptionPage";
+
+        static public Fields Fields;
+        
+        static OptionPage()
+        {
+            var store = Command1.ShellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
+            try
+            {
+                if (store.CollectionExists(CollectionName))
+                {
+                    using (var reader = new JsonTextReader(new StringReader(store.GetString(CollectionName, "Value"))))
+                    {
+                        Fields = new JsonSerializer().Deserialize<Fields>(reader);
+                        return;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+            Fields = new Fields();
+        }
+
+        async void save()
+        {
+            var store = Command1.ShellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
+            store.CreateCollection("ResourceMonitor.OptionPage");
+            using (var sw = new StringWriter())
+            {
+                using (var writer = new JsonTextWriter(sw))
+                {
+                    new JsonSerializer().Serialize(writer, Fields);
+                    store.SetString("ResourceMonitor.OptionPage", "Value", sw.ToString());
+                }
+            }
+        }
     }
 
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]

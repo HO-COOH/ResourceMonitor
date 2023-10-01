@@ -30,6 +30,14 @@ namespace ResourceMonitor
     [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideAutoLoad(UIContextGuids80.NoSolution, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideAutoLoad(UIContextGuids80.EmptySolution, PackageAutoLoadFlags.BackgroundLoad)]
+    [ProvideOptionPage(
+        typeof(OptionPage),
+        "Resource Monitor",
+        "General",
+        0,
+        0,
+        true)
+    ]
     public sealed class ResourceMonitorPackage : AsyncPackage
     {
         /// <summary>
