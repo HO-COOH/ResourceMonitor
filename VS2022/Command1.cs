@@ -141,19 +141,36 @@ namespace ResourceMonitor
                 string str=string.Empty;
                 if (options.showCPU)
                     str += $"CPU: {CPU.Usage} %";
-                if (options.showRam || options.showVSRam)
+                if (options.showRam || options.showVSRam != VSRamKind.None)
                 {
                     str += $"  RAM: ";
-                    if (options.showVSRam)
+
+                    switch (options.showVSRam)
                     {
-                        if(options.ramUsageUnit != SizeUnit.GB)
-                            str += $"{RAM.VsUsage(options.ramUsageUnit):0.}";
-                        else
-                            str += $"{RAM.VsUsage(SizeUnit.GB):0.#}";
-                        str += SizeUnitToStr(options.ramUsageUnit);
+                        case VSRamKind.None:
+                            break;
+                        case VSRamKind.MainProcessOnly:
+                            if (options.ramUsageUnit != SizeUnit.GB)
+                                str += $"{RAM.VsUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)}";
+                            else
+                                str += $"{RAM.VsUsage(SizeUnit.GB):0.#} GB";
+                            break;
+                        case VSRamKind.IncludeChildProcess:
+                            if (options.ramUsageUnit != SizeUnit.GB)
+                                str += $"{RAM.VsUsage(options.ramUsageUnit) + RAM.ChildProcessUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)}";
+                            else
+                                str += $"{RAM.VsUsage(options.ramUsageUnit) + RAM.ChildProcessUsage(options.ramUsageUnit):0.#} GB";
+                            break;
+                        case VSRamKind.SeparateMainAndChild:
+                            if (options.ramUsageUnit != SizeUnit.GB)
+                                str += $"{RAM.VsUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)} ({RAM.ChildProcessUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)})";
+                            else
+                                str += $"{RAM.VsUsage(options.ramUsageUnit)} GB ({RAM.ChildProcessUsage(options.ramUsageUnit):0.#} GB)";
+                            break;
                     }
 
-                    if (options.showVSRam && options.showRam)
+
+                    if (options.showVSRam != VSRamKind.None && options.showRam)
                         str += " / ";
 
                     if (options.showRam)

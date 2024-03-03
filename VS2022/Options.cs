@@ -21,6 +21,13 @@ using System.Linq;
 
 namespace ResourceMonitor
 {
+    public enum VSRamKind
+    {
+        MainProcessOnly,
+        IncludeChildProcess,
+        SeparateMainAndChild,
+        None
+    }
     [Serializable]
     public class Fields
     {
@@ -29,7 +36,7 @@ namespace ResourceMonitor
         public bool showRam { get; set; } = true;
         public SizeUnit ramUsageUnit { get; set; } = SizeUnit.MB;
         public SizeUnit ramTotalUnit { get; set; } = SizeUnit.GB;
-        public bool showVSRam { get; set; } = true;
+        public VSRamKind showVSRam { get; set; } = VSRamKind.SeparateMainAndChild;
         public bool showDisk { get; set; } = true;
         public bool showBatteryPercent { get; set; } = true;
         public bool showBatteryTime { get; set; } = true;
@@ -78,9 +85,9 @@ namespace ResourceMonitor
         }
 
         [Category("RAM")]
-        [DisplayName("Show RAM Usage of Visual Studio")]
-        [Description("Show RAM Usage of Visual Studio")]
-        public bool ShowVSRAM
+        [DisplayName("How RAM usage of Visual Studio are reported")]
+        [Description("How RAM usage of Visual Studio are reported")]
+        public VSRamKind ShowVSRAM
         {
             get => Fields.showVSRam;
             set
