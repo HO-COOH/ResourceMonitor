@@ -182,6 +182,10 @@ namespace ResourceMonitor
                         str += SizeUnitToStr(options.ramTotalUnit);
                     }
                 }
+                if (options.showNumProcess)
+                {
+                    str += $"({RAM.NumChild})";
+                }
 
                 if (options.showDisk)
                 {
@@ -212,7 +216,7 @@ namespace ResourceMonitor
                 statusBar?.SetText(existingText + " |  " + str);
 
                 statusBar.FreezeOutput(1);
-                await Task.Delay(options.refreshInterval * 1000);
+                await Task.Delay(Math.Max(options.refreshInterval, 1) * 1000 - 500);
 
             }
         }

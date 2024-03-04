@@ -44,6 +44,8 @@ namespace ResourceMonitor
         public static float TotalUsage(SizeUnit unit = SizeUnit.MB) => ConvertUnit((float)total - totalCounter.NextValue(), unit);
         public static float VsUsage(SizeUnit unit = SizeUnit.MB) => ConvertUnit(Process.GetCurrentProcess().PrivateMemorySize64, unit);
 
+        public static int NumChild = 0;
+
         private static IEnumerable<Process> getChildProcesses(Process process)
         {
             List<Process> children = new List<Process>();
@@ -64,10 +66,13 @@ namespace ResourceMonitor
         public static float ChildProcessUsage(SizeUnit unit = SizeUnit.GB)
         {
             float sum = 0;
+            int count = 0;
             foreach (var process in getChildProcesses(Process.GetCurrentProcess()))
             {
                 sum += process.PrivateMemorySize64;
+                ++count;
             }
+            NumChild = count + 1;
             return ConvertUnit(sum, unit);
         }
     }

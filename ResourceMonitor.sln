@@ -9,12 +9,12 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "VS2022", "VS2022\VS2022.shp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VS2022Support", "VS2022Support\VS2022Support.csproj", "{1C5DC8F1-E081-45AA-9398-2A1D4F05094A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F0193CEC-376A-4FA7-8DB1-0256D52D95BC}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		VS2022\VS2022.projitems*{0965e028-b866-49bf-ada0-74af57302dca}*SharedItemsImports = 13
-		VS2022\VS2022.projitems*{1c5dc8f1-e081-45aa-9398-2a1d4f05094a}*SharedItemsImports = 4
-		VS2022\VS2022.projitems*{6cd8de78-3620-4380-b055-f6eb5f931237}*SharedItemsImports = 4
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
@@ -52,5 +52,10 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {31A272B4-F08F-4237-9EAB-E03BAFFA4DFB}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		VS2022\VS2022.projitems*{0965e028-b866-49bf-ada0-74af57302dca}*SharedItemsImports = 13
+		VS2022\VS2022.projitems*{1c5dc8f1-e081-45aa-9398-2a1d4f05094a}*SharedItemsImports = 4
+		VS2022\VS2022.projitems*{6cd8de78-3620-4380-b055-f6eb5f931237}*SharedItemsImports = 4
 	EndGlobalSection
 EndGlobal

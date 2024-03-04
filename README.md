@@ -22,12 +22,16 @@ Now supports Visual Studio 2022 too:
 
 ![](./assets/3.png)
 
+## Settings
+You can found the settings in `Tools` -> `Options` -> `ResourceMonitor`
+
+
 
 ## Plans
 - ~~Add a setting menus for changing the refresh speed.~~ √ 
 - ~~Add settings for displaying different things.~~ √ 
 - ~~Able to run on start up~~ √ 
-- ~~Visual Studio 2022 support~~
+- ~~Visual Studio 2022 support~~ √
 
 ### Note:
 Partially inspired by:

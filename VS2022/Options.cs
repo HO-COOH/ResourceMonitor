@@ -34,6 +34,10 @@ namespace ResourceMonitor
         public int refreshInterval { get; set; } = 1;
         public bool showCPU { get; set; } = true;
         public bool showRam { get; set; } = true;
+        public bool showNumProcess
+        {
+            get; set;
+        } = true;
         public SizeUnit ramUsageUnit { get; set; } = SizeUnit.MB;
         public SizeUnit ramTotalUnit { get; set; } = SizeUnit.GB;
         public VSRamKind showVSRam { get; set; } = VSRamKind.SeparateMainAndChild;
@@ -119,6 +123,19 @@ namespace ResourceMonitor
             set
             {
                 Fields.ramTotalUnit = value;
+                save();
+            }
+        }
+
+        [Category("RAM")]
+        [DisplayName("Show number of processes")]
+        [Description("Show number of processes")]
+        public bool ShowNumProcess
+        {
+            get => Fields.showNumProcess;
+            set
+            {
+                Fields.showNumProcess = value;
                 save();
             }
         }
