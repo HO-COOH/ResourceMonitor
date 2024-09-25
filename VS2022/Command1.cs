@@ -10,6 +10,8 @@ using EnvDTE;
 using System.IO;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Settings;
+using VS2022;
+using Microsoft.VisualStudio.Threading;
 
 namespace ResourceMonitor
 {
@@ -78,6 +80,8 @@ namespace ResourceMonitor
             }
         }
 
+        static System.Windows.Controls.TextBlock s_textBlock;
+        static VS2022.StatusBarInjector s_injector;
         /// <summary>
         /// Initializes the singleton instance of the command.
         /// </summary>
@@ -92,7 +96,15 @@ namespace ResourceMonitor
             Instance = new Command1(package, commandService);
 
             var service = (await Instance.ServiceProvider.GetServiceAsync(typeof(SVsSettingsManager))) as IVsSettingsManager;
-            ShellSettingsManager =  new ShellSettingsManager(service); 
+            ShellSettingsManager =  new ShellSettingsManager(service);
+
+            s_textBlock = new System.Windows.Controls.TextBlock()
+            {
+                VerticalAlignment = System.Windows.VerticalAlignment.Center,
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Left
+            };
+            s_injector = new VS2022.StatusBarInjector(System.Windows.Application.Current.MainWindow);
+            s_injector.InjectControl(s_textBlock);
         }
 
 
@@ -132,6 +144,7 @@ namespace ResourceMonitor
                 disk = null;
             }
         }
+
         private async Task DoUpdate()
         {
             var statusBar = await ServiceProvider.GetServiceAsync(typeof(SVsStatusbar)) as IVsStatusbar;
@@ -208,16 +221,22 @@ namespace ResourceMonitor
                     }
                 }
 
-                statusBar.GetText(out string existingText);
-                var index = existingText.IndexOf('|');
-                if(index >= 0)
-                    existingText = existingText.Substring(0, index - 1);
-                statusBar.FreezeOutput(0);
-                statusBar?.SetText(existingText + " |  " + str);
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
+                if (!s_injector.IsInjected(s_textBlock))
+                {
+                    s_injector.InjectControl(s_textBlock);
+                }
+                s_textBlock.Text = str;
 
-                statusBar.FreezeOutput(1);
+                //detect theme changes and set the text color accordingly
+                var foregroundColor = s_injector.GetForegroundColor();
+                if(foregroundColor is System.Windows.Media.Color c)
+                {
+                    s_textBlock.Foreground = new System.Windows.Media.SolidColorBrush(c);
+                }
+                await TaskScheduler.Default;
+
                 await Task.Delay(Math.Max(options.refreshInterval, 1) * 1000 - 500);
-
             }
         }
 

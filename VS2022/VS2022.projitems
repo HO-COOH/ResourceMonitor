@@ -18,6 +18,7 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)RAM.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResourceMonitorPackage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StatusBarInjector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Units.cs" />
   </ItemGroup>
   <ItemGroup>
