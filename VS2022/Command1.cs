@@ -101,7 +101,7 @@ namespace ResourceMonitor
             s_textBlock = new System.Windows.Controls.TextBlock()
             {
                 VerticalAlignment = System.Windows.VerticalAlignment.Center,
-                HorizontalAlignment = System.Windows.HorizontalAlignment.Left
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Right
             };
             s_injector = new VS2022.StatusBarInjector(System.Windows.Application.Current.MainWindow);
             s_injector.InjectControl(s_textBlock);
@@ -236,7 +236,7 @@ namespace ResourceMonitor
                 }
                 await TaskScheduler.Default;
 
-                await Task.Delay(Math.Max(options.refreshInterval, 1) * 1000 - 500);
+                await Task.Delay(Math.Max(options.refreshInterval, 1) * 1000);
             }
         }
 

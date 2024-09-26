@@ -20,6 +20,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ResourceMonitorPackage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StatusBarInjector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Units.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Win32.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)VSPackage.resx">
