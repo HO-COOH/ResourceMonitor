@@ -19,7 +19,7 @@ namespace Win32
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-    public struct PROCESSENTRY32
+    public struct PROCESSENTRY32 : IEqualityComparer<PROCESSENTRY32>
     {
         const int MAX_PATH = 260;
         internal UInt32 dwSize;
@@ -33,6 +33,16 @@ namespace Win32
         internal UInt32 dwFlags;
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = MAX_PATH)]
         internal string szExeFile;
+
+        public bool Equals(PROCESSENTRY32 x, PROCESSENTRY32 y)
+        {
+            return x.th32ProcessID == y.th32ProcessID;
+        }
+
+        public int GetHashCode(PROCESSENTRY32 obj)
+        {
+            return th32ProcessID.GetHashCode();
+        }
     }
 
     public static class Kernel32

@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Battery.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ChildProcess.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Command1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CPU.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Disk.cs" />
