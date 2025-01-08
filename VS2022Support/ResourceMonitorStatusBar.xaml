@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:VS2022Support"
              mc:Ignorable="d" 
+             xmlns:vs="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              d:DesignHeight="450" d:DesignWidth="800"
              DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.ContextMenu>
@@ -15,12 +16,12 @@
     <UserControl.Resources>
         <Style TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{Binding TextForegroundBrush, Mode=OneWay}"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.StatusBarTextKey}}"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="Template" Value="{DynamicResource ButtonTemplate}"/>
         </Style>
         <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{Binding TextForegroundBrush, Mode=OneWay}"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.StatusBarTextKey}}"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         <SolidColorBrush x:Key="Button.MouseOver.Background" Color="#7FBEE6FD"/>
@@ -81,10 +82,10 @@
         </TextBlock>
 
         <Popup PlacementTarget="{Binding ElementName=CPUButton}" x:Name="CPUPopup" StaysOpen="False" Placement="Top" Opened="CPUPopup_Opened">
-            <local:CPUPanel x:Name="CPUPanel"/>
+            <local:ProcessPanel x:Name="CPUPanel"/>
         </Popup>
 
-        <Popup PlacementTarget="{Binding ElementName=RAMButton}" StaysOpen="False" Placement="Top">
+        <Popup x:Name="RAMPopup" PlacementTarget="{Binding ElementName=RAMButton}" StaysOpen="False" Placement="Top" Opened="RAMPopup_Opened">
             <local:RAMPanel x:Name="RAMPanel"/>
         </Popup>
     </StackPanel>

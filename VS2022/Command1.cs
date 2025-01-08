@@ -152,6 +152,10 @@ namespace ResourceMonitor
                     s_injected = s_injector.IsInjected(s_textBlock);
                 }
                 s_textBlock.Update();
+                if(CPUToolWindow.Instance != null)
+                    CPUToolWindow.Instance.Update();
+                if (RAMToolWindow.Instance != null)
+                    RAMToolWindow.Instance.Update();
 
                 //await TaskScheduler.Default;
                 await Task.Delay(Math.Max(OptionPage.Fields.refreshInterval, 1) * 1000);

@@ -15,27 +15,27 @@ namespace VS2022Support
     /// implementation of the IVsUIElementPane interface.
     /// </para>
     /// </remarks>
-    [Guid("a945d18d-7d03-458c-b9c0-1ef94cc7322b")]
-    public class CPUToolWindow : ToolWindowPane
+    [Guid("C9ACDED9-E7E2-409A-8557-ABE4740FCCFB")]
+    public class RAMToolWindow : ToolWindowPane
     {
-        public static CPUToolWindow Instance { get; set; }
+        public static RAMToolWindow Instance { get; set; }
         /// <summary>
         /// Initializes a new instance of the <see cref="CPUToolWindow"/> class.
         /// </summary>
-        public CPUToolWindow() : base(null)
+        public RAMToolWindow() : base(null)
         {
-            this.Caption = "CPUToolWindow";
+            this.Caption = "RAMToolWindow";
 
             // This is the user control hosted by the tool window; Note that, even if this class implements IDisposable,
             // we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on
             // the object returned by the Content property.
-            this.Content = new ProcessPanel();
+            this.Content = new RAMPanel();
             Instance = this;
         }
 
         public void Update()
         {
-            (Content as ProcessPanel).Update();
+            (Content as RAMPanel).Update();
         }
     }
 }

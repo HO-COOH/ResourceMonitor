@@ -31,7 +31,7 @@ namespace ResourceMonitor
         private static float ToMB(float value) => value / 1024.0f / 1024.0f;
         private static float ToGB(float value) => value / 1024.0f / 1024.0f / 1024.0f;
 
-        private static float ConvertUnit(float value, SizeUnit unit)
+        public static float ConvertUnit(float value, SizeUnit unit)
         {
             switch (unit)
             {
@@ -51,7 +51,17 @@ namespace ResourceMonitor
 
         public static float ChildProcessUsage(SizeUnit unit = SizeUnit.GB)
         {
-            float sum = ChildProcess.AllChildProcess == null? 0 : ChildProcess.AllChildProcess.Sum(process => System.Diagnostics.Process.GetProcessById((int)process).PrivateMemorySize64);
+            float sum = ChildProcess.AllChildProcess == null? 0 : ChildProcess.AllChildProcess.Sum(process =>
+            {
+                try
+                {
+                    return System.Diagnostics.Process.GetProcessById((int)process).PrivateMemorySize64;
+                }
+                catch
+                {
+                    return 0;
+                }
+            });
             return ConvertUnit(sum, unit);
         }
     }

@@ -1,7 +1,4 @@
-﻿using Microsoft.VisualStudio.Shell.Interop;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -15,25 +12,48 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Diagnostics;
 using VS2022;
+using Win32;
+using System.Collections.ObjectModel;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace VS2022Support
 {
-    /// <summary>
-    /// Interaction logic for RAMPanel.xaml
-    /// </summary>
-    public partial class RAMPanel : UserControl, INotifyPropertyChanged
+    public enum ProcessPanelKind
     {
-        public RAMPanel()
+        CPU,
+        RAM
+    }
+    /// <summary>
+    /// Interaction logic for CPUPanel.xaml
+    /// </summary>
+    public partial class ProcessPanel : UserControl, INotifyPropertyChanged
+    {
+
+        public ProcessPanel()
         {
             InitializeComponent();
-            ProcessItems.Add(new ProcessRAMUsageModel((uint)System.Diagnostics.Process.GetCurrentProcess().Id));
+            ProcessItems.Add(new ProcessCPUUsageModel((uint)Process.GetCurrentProcess().Id));
         }
+
+        public ObservableCollection<ProcessCPUUsageModel> ProcessItems { get; set; } = new ObservableCollection<ProcessCPUUsageModel>();
 
         public event PropertyChangedEventHandler PropertyChanged;
         public static event PropertyChangedEventHandler StaticPropertyChanged;
+
+        public void Update()
+        {
+            ChildProcess.SyncWithObservableCollection(ProcessItems);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ProcessItems"));
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
         private static bool m_isPinned = false;
-        public ObservableCollection<ProcessRAMUsageModel> ProcessItems { get; set; } = new ObservableCollection<ProcessRAMUsageModel>();
         public static bool IsPinned
         {
             get => m_isPinned;
@@ -42,7 +62,7 @@ namespace VS2022Support
                 m_isPinned = value;
                 if (CPUToolWindowPackage.Instance == null)
                     return;
-                var window = CPUToolWindowPackage.Instance.FindToolWindow(typeof(RAMToolWindow), 0, true);
+                var window = CPUToolWindowPackage.Instance.FindToolWindow(typeof(CPUToolWindow), 0, true);
                 var frame = window.Frame as IVsWindowFrame;
                 if (m_isPinned)
                 {
@@ -54,16 +74,5 @@ namespace VS2022Support
                 }
             }
         }
-        public void Update()
-        {
-            ChildProcess.SyncWithObservableCollection(ProcessItems);
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ProcessItems"));
-        }
-
-        private void KillProcessButton_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
     }
 }

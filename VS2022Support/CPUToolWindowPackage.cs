@@ -38,6 +38,7 @@ namespace VS2022Support
     [ProvideAutoLoad(UIContextGuids80.EmptySolution, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideToolWindow(typeof(CPUToolWindow))]
+    [ProvideToolWindow(typeof(RAMToolWindow))]
     [Guid(CPUToolWindowPackage.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     public sealed class CPUToolWindowPackage : AsyncPackage

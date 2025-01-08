@@ -169,53 +169,28 @@ namespace VS2022Support
             InitializeComponent();
         }
 
-        public SolidColorBrush TextForegroundBrush
-        {
-            get
-            {
-                if(StatusBarInjector.Instance == null)
-                {
-                    return new SolidColorBrush(Colors.White);
-                }
-
-                //detect theme changes and set the text color accordingly
-                if (StatusBarInjector.Instance.GetForegroundColor() is System.Windows.Media.Color c)
-                {
-                    return new SolidColorBrush(c);
-                }
-                return new SolidColorBrush(System.Windows.Media.Colors.White);
-            }
-        }
-
-        public void RefreshTextColor()
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("TextForegroundBrush"));
-        }
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void CPUButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("CPU", "me");
             CPUPopup.IsOpen = true;
         }
 
         private void RAMButton_Click(object sender, RoutedEventArgs e)
         {
-            if (CPUToolWindowPackage.Instance == null)
-                return;
-            var window = CPUToolWindowPackage.Instance.FindToolWindow(typeof(CPUToolWindow), 0, true);
-            var frame = window.Frame as IVsWindowFrame;
-            frame.Show();
+            RAMPopup.IsOpen = true;
         }
 
         public void Update()
         {
             DataModel.Update();
-            RefreshTextColor();
             if (CPUPopup.IsOpen)
             {
                 CPUPanel.Update();
+            }
+            if(RAMPopup.IsOpen)
+            {
+                RAMPanel.Update();
             }
         }
 
@@ -227,6 +202,11 @@ namespace VS2022Support
         private void CPUPopup_Opened(object sender, EventArgs e)
         {
             CPUPanel.Update();
+        }
+
+        private void RAMPopup_Opened(object sender, EventArgs e)
+        {
+            RAMPanel.Update();
         }
     }
 }

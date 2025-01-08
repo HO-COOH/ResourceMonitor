@@ -1,17 +1,18 @@
-﻿<UserControl x:Class="VS2022Support.RAMPanel"
+﻿<UserControl x:Class="VS2022Support.ProcessPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:VS2022Support"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800"
              MinWidth="300"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             d:DesignHeight="450" d:DesignWidth="800"
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}"
              Background="{DynamicResource {x:Static vs:VsBrushes.ToolWindowBackgroundKey}}"
-             >
+            
+>
     <UserControl.Resources>
         <SolidColorBrush x:Key="CPUColor" Color="#7FC3ECFA"/>
         <Geometry x:Key="CancelSvg">M960,480C960,524.333 954.25,566.917 942.75,607.75C931.25,648.583 915.083,686.75 894.25,722.25C873.417,757.75 848.417,790.083 819.25,819.25C790.083,848.417 757.75,873.417 722.25,894.25C686.75,915.083 648.5,931.25 607.5,942.75C566.5,954.25 524,960 480,960C435.667,960 393,954.333 352,943C311,931.667 272.75,915.583 237.25,894.75C201.75,873.917 169.417,848.917 140.25,819.75C111.083,790.583 86.0833,758.25 65.25,722.75C44.4167,687.25 28.3333,649 17,608C5.66667,567 0,524.333 0,480C0,435.667 5.66667,393.083 17,352.25C28.3333,311.417 44.4167,273.167 65.25,237.5C86.0833,201.833 111.083,169.417 140.25,140.25C169.417,111.083 201.833,86.0834 237.5,65.25C273.167,44.4167 311.417,28.3334 352.25,17C393.083,5.66669 435.667,0 480,0C524,0 566.417,5.75 607.25,17.25C648.083,28.75 686.333,44.9167 722,65.75C757.667,86.5834 790.083,111.583 819.25,140.75C848.417,169.917 873.417,202.333 894.25,238C915.083,273.667 931.25,311.917 942.75,352.75C954.25,393.583 960,436 960,480ZM64,480C64,530 72.5833,578.167 89.75,624.5C106.917,670.833 131.667,713 164,751L751,164C713,131.667 670.833,106.917 624.5,89.75C578.167,72.5834 530,64.0001 480,64C441.667,64.0001 404.75,68.9167 369.25,78.75C333.75,88.5834 300.583,102.583 269.75,120.75C238.917,138.917 210.917,160.583 185.75,185.75C160.583,210.917 138.917,238.917 120.75,269.75C102.583,300.583 88.5833,333.75 78.75,369.25C68.9167,404.75 64,441.667 64,480ZM896,480C896,430 887.417,381.833 870.25,335.5C853.083,289.167 828.333,247 796,209L209,796C247,828.333 289.167,853.083 335.5,870.25C381.833,887.417 430,896 480,896C518.333,896 555.25,891.083 590.75,881.25C626.25,871.417 659.417,857.5 690.25,839.5C721.083,821.5 749.167,799.833 774.5,774.5C799.833,749.167 821.5,721.083 839.5,690.25C857.5,659.417 871.417,626.25 881.25,590.75C891.083,555.25 896,518.333 896,480Z</Geometry>
@@ -59,7 +60,6 @@
         </ControlTemplate>
     </UserControl.Resources>
 
-
     <Border CornerRadius="4"  
             BorderBrush="{DynamicResource {x:Static vs:VsBrushes.HighlightKey}}"
             BorderThickness="1"
@@ -71,7 +71,7 @@
             </Grid.RowDefinitions>
 
             <Grid>
-                <ToggleButton Template="{DynamicResource ToggleButtonTemplate1}" x:Name="PinButton" HorizontalAlignment="Right" IsChecked="{Binding Path=(local:RAMPanel.IsPinned), Mode=TwoWay}" Background="Transparent" Margin="0,0,0,5">
+                <ToggleButton Template="{DynamicResource ToggleButtonTemplate1}" x:Name="PinButton" HorizontalAlignment="Right" IsChecked="{Binding Path=(local:ProcessPanel.IsPinned), Mode=TwoWay}" Background="Transparent" Margin="0,0,0,5">
                     <Grid Width="16" Height="16">
                         <Grid.RowDefinitions>
                             <RowDefinition/>
@@ -107,7 +107,7 @@
                     </Style>
                 </ListView.ItemContainerStyle>
                 <ListView.ItemTemplate>
-                    <DataTemplate DataType="local:ProcessRAMUsageModel">
+                    <DataTemplate DataType="local:ProcessCPUUsageModel">
                         <Grid x:Name="RootGrid" Background="Transparent" MinHeight="30">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -120,8 +120,8 @@
                             <TextBlock Text="{Binding Name}" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{DynamicResource {x:Static vs:VsBrushes.StatusBarTextKey}}"/>
 
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <TextBlock Text="{Binding UsageText, Mode=OneWay}" VerticalAlignment="Center" Foreground="{DynamicResource {x:Static vs:VsBrushes.StatusBarTextKey}}"/>
-                                <Button x:Name="KillProcessButton" Click="KillProcessButton_Click" Visibility="Collapsed" Margin="4,0,0,0">
+                                <TextBlock Text="{Binding PercentText, Mode=OneWay}" VerticalAlignment="Center" Foreground="{DynamicResource {x:Static vs:VsBrushes.StatusBarTextKey}}"/>
+                                <Button x:Name="KillProcessButton" Click="Button_Click" Visibility="Collapsed" Margin="4,0,0,0">
                                     <Grid Width="16" Height="16">
                                         <Path Stretch="Fill" Fill="{DynamicResource {x:Static vs:VsBrushes.StatusBarTextKey}}" Stroke="{DynamicResource {x:Static vs:VsBrushes.StatusBarTextKey}}" StrokeThickness="1" Data="{StaticResource CancelSvg}"/>
                                     </Grid>
