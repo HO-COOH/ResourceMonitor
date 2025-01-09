@@ -127,19 +127,6 @@ namespace ResourceMonitor
             }
         }
 
-        [Category("RAM")]
-        [DisplayName("Show number of processes")]
-        [Description("Show number of processes")]
-        public bool ShowNumProcess
-        {
-            get => Fields.showNumProcess;
-            set
-            {
-                Fields.showNumProcess = value;
-                save();
-            }
-        }
-
         [Category("Disk")]
         [DisplayName("Show Solution Disk Usage")]
         [Description("Show Solution Disk Usage")]
@@ -203,8 +190,10 @@ namespace ResourceMonitor
             Fields = new Fields();
         }
 
+        public static event EventHandler OptionsChanged;
         async void save()
         {
+            OptionsChanged.Invoke(null, null);
             var store = Command1.ShellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
             store.CreateCollection("ResourceMonitor.OptionPage");
             using (var sw = new StringWriter())

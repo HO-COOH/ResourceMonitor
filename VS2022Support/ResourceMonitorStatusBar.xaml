@@ -56,13 +56,13 @@
         </ControlTemplate>
     </UserControl.Resources>
     <StackPanel x:Name="Container" Orientation="Horizontal">
-        <Button x:Name="CPUButton" Margin="5,0,5,0" Click="CPUButton_Click">
+        <Button x:Name="CPUButton" Margin="5,0,5,0" Click="CPUButton_Click" Visibility="{Binding DataModel.CPUVisibility, Mode=OneWay}">
             <TextBlock>
                 <Run Text="CPU: "/>
                 <Run Text="{Binding DataModel.CPU, Mode=OneWay}"/>
             </TextBlock>
         </Button>
-        <Button x:Name="RAMButton" Margin="5,0,5,0" Click="RAMButton_Click">
+        <Button x:Name="RAMButton" Margin="5,0,5,0" Click="RAMButton_Click" Visibility="{Binding DataModel.RAMVisibility, Mode=OneWay}">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="RAM: "/>
                 
@@ -75,11 +75,11 @@
             <Run Text="Disk: "/>
             <Run Text="{Binding DataModel.Disk, Mode=OneWay}"/>
         </TextBlock>
-        <TextBlock x:Name="BatteryText" Margin="5,0,5,0">
-            <Run Text="Battery: "/>
-            <Run Text="{Binding DataModel.BatteryPercent, Mode=OneWay}"/>
-            <Run Text="{Binding DataModel.BatteryTime, Mode=OneWay}"/>
-        </TextBlock>
+        <StackPanel x:Name="BatteryText" Margin="5,0,5,0" Visibility="{Binding DataModel.BatteryVisibility, Mode=OneWay}" Orientation="Horizontal">
+            <TextBlock Text="Battery: "/>
+            <TextBlock Text="{Binding DataModel.BatteryPercent, Mode=OneWay}" Visibility="{Binding DataModel.BatteryPercentVisibility, Mode=OneWay}"/>
+            <TextBlock Text="{Binding DataModel.BatteryTime, Mode=OneWay}" Visibility="{Binding DataModel.BatteryTimeVisibility, Mode=OneWay}"/>
+        </StackPanel>
 
         <Popup PlacementTarget="{Binding ElementName=CPUButton}" x:Name="CPUPopup" StaysOpen="False" Placement="Top" Opened="CPUPopup_Opened">
             <local:ProcessPanel x:Name="CPUPanel"/>

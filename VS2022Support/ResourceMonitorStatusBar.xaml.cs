@@ -135,14 +135,14 @@ namespace VS2022Support
             }
         }
 
-        public Visibility DiskVisibility
-        {
-            get
-            {
-                return Disk != "" ? 
-                    Visibility.Visible : Visibility.Collapsed;
-            }
-        }
+
+        public Visibility CPUVisibility => OptionPage.Fields.showCPU ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility RAMVisibility => OptionPage.Fields.showRam || OptionPage.Fields.showVSRam != VSRamKind.None ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility DiskVisibility => OptionPage.Fields.showDisk && Disk != "" ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility BatteryVisibility => OptionPage.Fields.showBatteryTime || OptionPage.Fields.showBatteryPercent ? Visibility.Visible : Visibility.Hidden;
+        public Visibility BatteryPercentVisibility => OptionPage.Fields.showBatteryPercent ? Visibility.Visible : Visibility.Hidden;
+        public Visibility BatteryTimeVisibility => OptionPage.Fields.showBatteryTime ? Visibility.Visible : Visibility.Hidden;
+
 
         public void Update()
         {
@@ -156,8 +156,18 @@ namespace VS2022Support
 
         public void SettingsChanged()
         {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("CPUVisibility"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("RAMVisibility"));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("RamSeperatorVisibility"));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("DiskVisibility"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BatteryVisibility"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BatteryPercentVisibility"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BatteryTimeVisibility"));
+        }
+
+        public OverviewDataModel()
+        {
+            OptionPage.OptionsChanged += (_, __) => { SettingsChanged(); };
         }
     }
 

@@ -136,11 +136,19 @@ namespace ResourceMonitor
         }
 
         static bool s_injected = false;
+        DateTime lastUpdateTime = DateTime.Now;
         private async Task DoUpdate()
         {
             var statusBar = await ServiceProvider.GetServiceAsync(typeof(SVsStatusbar)) as IVsStatusbar;
             while (true)
             {
+                var refreshIntervalSeconds = Math.Max(OptionPage.Fields.refreshInterval, 1);
+                var timeDiffMilliseconds = refreshIntervalSeconds * 1000 - (DateTime.Now - lastUpdateTime).TotalMilliseconds;
+                if (timeDiffMilliseconds > 0)
+                    await Task.Delay((int)timeDiffMilliseconds);
+
+
+                lastUpdateTime = DateTime.Now;
                 ChildProcess.Update();
                 if (Disk == null)
                     await GetSolutionDir();
@@ -156,10 +164,6 @@ namespace ResourceMonitor
                     CPUToolWindow.Instance.Update();
                 if (RAMToolWindow.Instance != null)
                     RAMToolWindow.Instance.Update();
-
-                //await TaskScheduler.Default;
-                await Task.Delay(Math.Max(OptionPage.Fields.refreshInterval, 1) * 1000);
-                System.Diagnostics.Debug.WriteLine("Update");
             }
         }
 
