@@ -2,6 +2,8 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Diagnostics;
+using System.Management;
+using System.Linq;
 
 namespace VS2022Support
 {
@@ -26,11 +28,19 @@ namespace VS2022Support
             }
         }
 
-        public string Name
-        {
-            get => Process.ProcessName;
-        }
+        public string Name => Process.ProcessName;
 
+        public string CommandLine
+        {
+            get
+            {
+                using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId = " + Pid))
+                using (ManagementObjectCollection objects = searcher.Get())
+                {
+                    return objects.Cast<ManagementBaseObject>().SingleOrDefault()?["CommandLine"]?.ToString();
+                }
+            }
+        }
         public ProcessUsageBase(uint pid)
         {
             Pid = (int)pid;

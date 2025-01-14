@@ -27,7 +27,7 @@ namespace VS2022Support
         {
             get
             {
-                return $"{ResourceMonitor.CPU.Usage} %";
+                return $"{ResourceMonitor.CPU.Usage,3} %";
             }
         }
 
@@ -142,7 +142,8 @@ namespace VS2022Support
         public Visibility BatteryVisibility => OptionPage.Fields.showBatteryTime || OptionPage.Fields.showBatteryPercent ? Visibility.Visible : Visibility.Hidden;
         public Visibility BatteryPercentVisibility => OptionPage.Fields.showBatteryPercent ? Visibility.Visible : Visibility.Hidden;
         public Visibility BatteryTimeVisibility => OptionPage.Fields.showBatteryTime ? Visibility.Visible : Visibility.Hidden;
-
+        public Visibility LabelTextVisibility => OptionPage.Fields.labelKind == LabelKind.Text ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility LabelIconVisibility => OptionPage.Fields.labelKind == LabelKind.Icon? Visibility.Visible : Visibility.Collapsed;
 
         public void Update()
         {
@@ -150,6 +151,7 @@ namespace VS2022Support
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("RAM"));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("TotalRAM"));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Disk"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("DiskVisibility"));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BatteryPercent"));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BatteryTime"));
         }
@@ -163,6 +165,8 @@ namespace VS2022Support
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BatteryVisibility"));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BatteryPercentVisibility"));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BatteryTimeVisibility"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("LabelTextVisibility"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("LabelIconVisibility"));
         }
 
         public OverviewDataModel()

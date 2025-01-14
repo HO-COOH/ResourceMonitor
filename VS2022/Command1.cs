@@ -140,31 +140,35 @@ namespace ResourceMonitor
         private async Task DoUpdate()
         {
             var statusBar = await ServiceProvider.GetServiceAsync(typeof(SVsStatusbar)) as IVsStatusbar;
-            while (true)
+            try
             {
-                var refreshIntervalSeconds = Math.Max(OptionPage.Fields.refreshInterval, 1);
-                var timeDiffMilliseconds = refreshIntervalSeconds * 1000 - (DateTime.Now - lastUpdateTime).TotalMilliseconds;
-                if (timeDiffMilliseconds > 0)
-                    await Task.Delay((int)timeDiffMilliseconds);
-
-
-                lastUpdateTime = DateTime.Now;
-                ChildProcess.Update();
-                if (Disk == null)
-                    await GetSolutionDir();
-
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
-                if (!s_injected)
+                while (true)
                 {
-                    s_injector.InjectControl(s_textBlock);
-                    s_injected = s_injector.IsInjected(s_textBlock);
+                    var refreshIntervalSeconds = Math.Max(OptionPage.Fields.refreshInterval, 1);
+                    var timeDiffMilliseconds = refreshIntervalSeconds * 1000 - (DateTime.Now - lastUpdateTime).TotalMilliseconds;
+                    if (timeDiffMilliseconds > 0)
+                        await Task.Delay((int)timeDiffMilliseconds);
+
+
+                    lastUpdateTime = DateTime.Now;
+                    ChildProcess.Update();
+                    if (Disk == null)
+                        await GetSolutionDir();
+
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
+                    if (!s_injected)
+                    {
+                        s_injector.InjectControl(s_textBlock);
+                        s_injected = s_injector.IsInjected(s_textBlock);
+                    }
+                    s_textBlock.Update();
+                    if (CPUToolWindow.Instance != null)
+                        CPUToolWindow.Instance.Update();
+                    if (RAMToolWindow.Instance != null)
+                        RAMToolWindow.Instance.Update();
                 }
-                s_textBlock.Update();
-                if(CPUToolWindow.Instance != null)
-                    CPUToolWindow.Instance.Update();
-                if (RAMToolWindow.Instance != null)
-                    RAMToolWindow.Instance.Update();
             }
+            catch { }
         }
 
 

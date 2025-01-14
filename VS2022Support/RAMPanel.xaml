@@ -127,6 +127,10 @@
                                     </Grid>
                                 </Button>
                             </StackPanel>
+
+                            <Grid.ToolTip>
+                                <ToolTip Content="{Binding CommandLine}"/>
+                            </Grid.ToolTip>
                         </Grid>
                         <DataTemplate.Triggers>
                             <Trigger SourceName="RootGrid" Property="IsMouseOver" Value="True">

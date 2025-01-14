@@ -78,7 +78,7 @@
       <DependentUpon>CPUToolWindowControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="CPUToolWindowPackage.cs" />
-    <Compile Include="ProcessCPUUsageModel.cs" />
+    <Compile Include="ProcessUsageModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RAMPanel.xaml.cs">
       <DependentUpon>RAMPanel.xaml</DependentUpon>
