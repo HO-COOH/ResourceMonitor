@@ -12,7 +12,7 @@ namespace VS2022Support
         public event PropertyChangedEventHandler PropertyChanged;
 
         public abstract void Update();
-
+        public abstract void RaiseDataChange();
         public int Pid { get; private set; }
 
         private Process m_process;
@@ -64,6 +64,8 @@ namespace VS2022Support
         {
             try
             {
+                Process.Refresh();
+
                 if (lastTime == null || lastTime == new DateTime())
                 {
                     lastTime = DateTime.Now;
@@ -81,10 +83,6 @@ namespace VS2022Support
                 lastTime = curTime;
                 lastTotalProcessorTime = curTotalProcessorTime;
                 Percent = (float)CPUUsage;
-
-                raisePropertyChanged("ColoredWidth");
-                raisePropertyChanged("UncoloredWidth");
-                raisePropertyChanged("PercentText");
             }
             catch
             { }
@@ -116,6 +114,13 @@ namespace VS2022Support
         public bool Equals(ProcessCPUUsageModel other)
         {
             return other.Pid == Pid;
+        }
+
+        public override void RaiseDataChange()
+        {
+            raisePropertyChanged("ColoredWidth");
+            raisePropertyChanged("UncoloredWidth");
+            raisePropertyChanged("PercentText");
         }
     }
 
@@ -150,20 +155,29 @@ namespace VS2022Support
         private float Percent => Clamp(MaxProcessMemory == 0? 0:(float)Process.PrivateMemorySize64 / MaxProcessMemory, 0.01f, 0.99f);
         public GridLength ColoredWidth => new GridLength(Percent, GridUnitType.Star);
         public GridLength UncoloredWidth => new GridLength(1.0 - Percent, GridUnitType.Star);
-
-        public string UsageText => $"{ResourceMonitor.RAM.ConvertUnit(Process.PrivateMemorySize64, ResourceMonitor.SizeUnit.MB):0.} MB";
+        private string m_usageText;
+        public string UsageText => m_usageText;
 
         public override void Update()
         {
-            Process.Refresh();
-            raisePropertyChanged("ColoredWidth");
-            raisePropertyChanged("UncoloredWidth");
-            raisePropertyChanged("UsageText");
+            try
+            {
+                Process.Refresh();
+                m_usageText = $"{ResourceMonitor.RAM.ConvertUnit(Process.PrivateMemorySize64, ResourceMonitor.SizeUnit.MB):0.} MB";
+            }
+            catch { }
         }
 
         public bool Equals(ProcessRAMUsageModel other)
         {
             return other.Pid == Pid;
+        }
+
+        public override void RaiseDataChange()
+        {
+            raisePropertyChanged("ColoredWidth");
+            raisePropertyChanged("UncoloredWidth");
+            raisePropertyChanged("UsageText");
         }
     }
 }

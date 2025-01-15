@@ -23,13 +23,12 @@ namespace VS2022Support
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public string CPU
+        private string m_cpu;
+        private void updateCPU()
         {
-            get
-            {
-                return $"{ResourceMonitor.CPU.Usage,3} %";
-            }
+            m_cpu = $"{ResourceMonitor.CPU.Usage,3} %";
         }
+        public string CPU => m_cpu;
 
         private static string SizeUnitToStr(SizeUnit unit)
         {
@@ -46,33 +45,35 @@ namespace VS2022Support
             return "";
         }
 
-        public string RAM
+        private string m_ram;
+        private void updateRAM()
         {
-            get
+            var options = OptionPage.Fields;
+            switch (options.showVSRam)
             {
-                var options = OptionPage.Fields;
-                switch(options.showVSRam)
-                {
-                    case VSRamKind.MainProcessOnly:
-                        if (options.ramUsageUnit != SizeUnit.GB)
-                            return $"{ResourceMonitor.RAM.VsUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)}";
-                        else
-                            return $"{ResourceMonitor.RAM.VsUsage(SizeUnit.GB):0.#} GB";
-                    case VSRamKind.IncludeChildProcess:
-                        if (options.ramUsageUnit != SizeUnit.GB)
-                            return $"{ResourceMonitor.RAM.VsUsage(options.ramUsageUnit) + ResourceMonitor.RAM.ChildProcessUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)}";
-                        else
-                            return $"{ResourceMonitor.RAM.VsUsage(options.ramUsageUnit) + ResourceMonitor.RAM.ChildProcessUsage(options.ramUsageUnit):0.#} GB";
-                    case VSRamKind.SeparateMainAndChild:
-                        if (options.ramUsageUnit != SizeUnit.GB)
-                            return $"{ResourceMonitor.RAM.VsUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)} ({ResourceMonitor.RAM.ChildProcessUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)}, {ResourceMonitor.RAM.NumChild} Child)";
-                        else
-                            return $"{ResourceMonitor.RAM.VsUsage(options.ramUsageUnit)} GB ({ResourceMonitor.RAM.ChildProcessUsage(options.ramUsageUnit):0.#} GB, {ResourceMonitor.RAM.NumChild} Child)";
-                    default:
-                        return "";
-                }
+                case VSRamKind.MainProcessOnly:
+                    if (options.ramUsageUnit != SizeUnit.GB)
+                        m_ram = $"{ResourceMonitor.RAM.VsUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)}";
+                    else
+                        m_ram = $"{ResourceMonitor.RAM.VsUsage(SizeUnit.GB):0.#} GB";
+                    break;
+                case VSRamKind.IncludeChildProcess:
+                    if (options.ramUsageUnit != SizeUnit.GB)
+                        m_ram = $"{ResourceMonitor.RAM.VsUsage(options.ramUsageUnit) + ResourceMonitor.RAM.ChildProcessUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)}";
+                    else
+                        m_ram = $"{ResourceMonitor.RAM.VsUsage(options.ramUsageUnit) + ResourceMonitor.RAM.ChildProcessUsage(options.ramUsageUnit):0.#} GB";
+                    break;
+                case VSRamKind.SeparateMainAndChild:
+                    if (options.ramUsageUnit != SizeUnit.GB)
+                        m_ram = $"{ResourceMonitor.RAM.VsUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)} ({ResourceMonitor.RAM.ChildProcessUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)}, {ResourceMonitor.RAM.NumChild} Child)";
+                    else
+                        m_ram = $"{ResourceMonitor.RAM.VsUsage(options.ramUsageUnit)} GB ({ResourceMonitor.RAM.ChildProcessUsage(options.ramUsageUnit):0.#} GB, {ResourceMonitor.RAM.NumChild} Child)";
+                    break;
+                default:
+                    return;
             }
         }
+        public string RAM => m_ram;
 
         public Visibility RamSeperatorVisibility
         {
@@ -85,55 +86,52 @@ namespace VS2022Support
             }
         }
 
-        public string TotalRAM
+        private string m_totalRAM;
+        private void updateTotalRAM()
         {
-            get
+            if (OptionPage.Fields.showRam)
             {
-                if (OptionPage.Fields.showRam)
-                {
-                    if (OptionPage.Fields.ramTotalUnit != SizeUnit.GB)
-                        return $"{ResourceMonitor.RAM.TotalUsage(OptionPage.Fields.ramTotalUnit):0.} {SizeUnitToStr(OptionPage.Fields.ramTotalUnit)}";
-                    else
-                        return $"{ResourceMonitor.RAM.TotalUsage(SizeUnit.GB):0.#} GB";
-                }
-                return "";
+                if (OptionPage.Fields.ramTotalUnit != SizeUnit.GB)
+                    m_totalRAM = $"{ResourceMonitor.RAM.TotalUsage(OptionPage.Fields.ramTotalUnit):0.} {SizeUnitToStr(OptionPage.Fields.ramTotalUnit)}";
+                else
+                    m_totalRAM = $"{ResourceMonitor.RAM.TotalUsage(SizeUnit.GB):0.#} GB";
             }
+            else
+                m_totalRAM = "";
         }
+        public string TotalRAM => m_totalRAM;
 
-        public string BatteryPercent
+        private string m_batteryPercent;
+        private void updateBatteryPercent()
         {
-            get
-            {
-                if (OptionPage.Fields.showBatteryPercent)
-                    return $" {ResourceMonitor.Battery.BatteryPercent * 100} %";
-
-                return "";
-            }
+            if (OptionPage.Fields.showBatteryPercent)
+                m_batteryPercent = $" {ResourceMonitor.Battery.BatteryPercent * 100} %";
+            else
+                m_batteryPercent = "";
         }
+        public string BatteryPercent => m_batteryPercent;
 
-        public string BatteryTime
+        private string m_batteryTime;
+        private void updateBatteryTime()
         {
-            get
+            if (OptionPage.Fields.showBatteryTime)
             {
-                if (OptionPage.Fields.showBatteryTime)
-                {
-                    var batteryRemain = Battery.BatteryRemains;
-                    return $" {batteryRemain.Item1} h {batteryRemain.Item2} min";
-                }
-                return "";
+                var batteryRemain = Battery.BatteryRemains;
+                m_batteryTime = $" {batteryRemain.Item1} h {batteryRemain.Item2} min";
             }
+            m_batteryTime = "";
         }
+        public string BatteryTime => m_batteryTime;
 
-        public string Disk
+        private string m_disk;
+        private void updateDisk()
         {
-            get
-            {
-                if(OptionPage.Fields.showDisk && Command1.Disk != null)
-                    return $"{Command1.Disk.SolutionSize(SizeUnit.MB):0.#} MB";
-
-                return "";
-            }
+            if (OptionPage.Fields.showDisk && Command1.Disk != null)
+                m_disk = $"{Command1.Disk.SolutionSize(SizeUnit.MB):0.#} MB";
+            else
+                m_disk = "";
         }
+        public string Disk => m_disk;
 
 
         public Visibility CPUVisibility => OptionPage.Fields.showCPU ? Visibility.Visible : Visibility.Collapsed;
@@ -146,6 +144,16 @@ namespace VS2022Support
         public Visibility LabelIconVisibility => OptionPage.Fields.labelKind == LabelKind.Icon? Visibility.Visible : Visibility.Collapsed;
 
         public void Update()
+        {
+            updateCPU();
+            updateRAM();
+            updateTotalRAM();
+            updateDisk();
+            updateBatteryPercent();
+            updateBatteryTime();
+        }
+
+        public void RaiseDataChanged()
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("CPU"));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("RAM"));
@@ -185,6 +193,8 @@ namespace VS2022Support
 
         public event PropertyChangedEventHandler PropertyChanged;
 
+        bool m_cpuPanelOpened = false;
+        bool m_ramPanelOpened = false;
         private void CPUButton_Click(object sender, RoutedEventArgs e)
         {
             CPUPopup.IsOpen = true;
@@ -198,13 +208,22 @@ namespace VS2022Support
         public void Update()
         {
             DataModel.Update();
+            if (m_cpuPanelOpened)
+                CPUPanel.Update();
+            if (m_ramPanelOpened)
+                RAMPanel.Update();
+        }
+
+        public void RaiseDataChange()
+        {
+            DataModel.RaiseDataChanged();
             if (CPUPopup.IsOpen)
             {
-                CPUPanel.Update();
+                CPUPanel.RaiseDataChange();
             }
-            if(RAMPopup.IsOpen)
+            if (RAMPopup.IsOpen)
             {
-                RAMPanel.Update();
+                RAMPanel.RaiseDataChange();
             }
         }
 
@@ -216,11 +235,23 @@ namespace VS2022Support
         private void CPUPopup_Opened(object sender, EventArgs e)
         {
             CPUPanel.Update();
+            m_cpuPanelOpened = true;
         }
 
         private void RAMPopup_Opened(object sender, EventArgs e)
         {
             RAMPanel.Update();
+            m_ramPanelOpened = true;
+        }
+
+        private void CPUPopup_Closed(object sender, EventArgs e)
+        {
+            m_cpuPanelOpened = false;
+        }
+
+        private void RAMPopup_Closed(object sender, EventArgs e)
+        {
+            m_ramPanelOpened = false;
         }
     }
 }

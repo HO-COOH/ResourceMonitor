@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Shell.Settings;
 using VS2022;
 using Microsoft.VisualStudio.Threading;
 using VS2022Support;
+using System.Windows;
 
 namespace ResourceMonitor
 {
@@ -108,6 +109,7 @@ namespace ResourceMonitor
             };
             s_injector = new VS2022.StatusBarInjector(System.Windows.Application.Current.MainWindow);
             s_injector.InjectControl(s_textBlock);
+            s_injected = s_injector.IsInjected(s_textBlock);
         }
 
 
@@ -140,10 +142,11 @@ namespace ResourceMonitor
         private async Task DoUpdate()
         {
             var statusBar = await ServiceProvider.GetServiceAsync(typeof(SVsStatusbar)) as IVsStatusbar;
-            try
+            while (true)
             {
-                while (true)
+                try
                 {
+                    await TaskScheduler.Default;
                     var refreshIntervalSeconds = Math.Max(OptionPage.Fields.refreshInterval, 1);
                     var timeDiffMilliseconds = refreshIntervalSeconds * 1000 - (DateTime.Now - lastUpdateTime).TotalMilliseconds;
                     if (timeDiffMilliseconds > 0)
@@ -154,21 +157,30 @@ namespace ResourceMonitor
                     ChildProcess.Update();
                     if (Disk == null)
                         await GetSolutionDir();
+                    s_textBlock.Update();
 
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
+                    CPUToolWindow.Instance?.Update();
+                    RAMToolWindow.Instance?.Update();
+                    try
+                    {
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
+                    }
+                    catch 
+                    {
+                        return;
+                    }
+
                     if (!s_injected)
                     {
                         s_injector.InjectControl(s_textBlock);
                         s_injected = s_injector.IsInjected(s_textBlock);
                     }
-                    s_textBlock.Update();
-                    if (CPUToolWindow.Instance != null)
-                        CPUToolWindow.Instance.Update();
-                    if (RAMToolWindow.Instance != null)
-                        RAMToolWindow.Instance.Update();
+                    s_textBlock.RaiseDataChange();
+                    CPUToolWindow.Instance?.RaiseDataChange();
+                    RAMToolWindow.Instance?.RaiseDataChange();
                 }
+                catch { }
             }
-            catch { }
         }
 
 

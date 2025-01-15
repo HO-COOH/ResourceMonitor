@@ -54,16 +54,35 @@ namespace VS2022Support
                 }
             }
         }
+
+        ChildProcess.CollectionChange<ProcessRAMUsageModel> m_collectionChange;
         public void Update()
         {
-            ChildProcess.SyncWithObservableCollection(ProcessItems);
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ProcessItems"));
+            m_collectionChange = ChildProcess.SyncWithObservableCollection(ProcessItems);
+        }
+
+        public void RaiseDataChange()
+        {
+            if (m_collectionChange.ItemsToAdd != null)
+            {
+                foreach (var addItem in m_collectionChange.ItemsToAdd)
+                    ProcessItems.Add(addItem);
+            }
+            if(m_collectionChange.ItemsToRemove != null)
+            {
+                foreach(var removeItem in m_collectionChange.ItemsToRemove)
+                    ProcessItems.Remove(removeItem);
+            }
+
+            foreach (var item in ProcessItems)
+            {
+                item.RaiseDataChange();
+            }
         }
 
         private void KillProcessButton_Click(object sender, RoutedEventArgs e)
         {
-
+            (((Button)sender).DataContext as ProcessCPUUsageModel).Process.Kill();
         }
-
     }
 }

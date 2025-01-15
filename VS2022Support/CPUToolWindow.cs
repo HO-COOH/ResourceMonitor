@@ -35,7 +35,16 @@ namespace VS2022Support
 
         public void Update()
         {
-            (Content as ProcessPanel).Update();
+            try
+            {
+                (Content as ProcessPanel).Update();
+            }
+            catch { }
+        }
+
+        public void RaiseDataChange()
+        {
+            (Content as ProcessPanel).RaiseDataChange();
         }
     }
 }

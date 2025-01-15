@@ -35,7 +35,16 @@ namespace VS2022Support
 
         public void Update()
         {
-            (Content as RAMPanel).Update();
+            try
+            {
+                (Content as RAMPanel).Update();
+            }
+            catch { }
+        }
+
+        public void RaiseDataChange()
+        {
+            (Content as RAMPanel).RaiseDataChange();
         }
     }
 }

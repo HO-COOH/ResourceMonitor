@@ -109,47 +109,56 @@ namespace VS2022
             getChildProcessRecursive((uint)System.Diagnostics.Process.GetCurrentProcess().Id, allProcesses);
         }
 
-        public static void SyncWithObservableCollection(ObservableCollection<ProcessCPUUsageModel> collection)
+        public struct CollectionChange<T> where T : ProcessUsageBase
         {
+            public List<T> ItemsToAdd = new List<T>();
+            public List<T> ItemsToRemove = new List<T>();
+
+            public CollectionChange()
+            {
+            }
+        }
+
+        public static CollectionChange<ProcessCPUUsageModel> SyncWithObservableCollection(ObservableCollection<ProcessCPUUsageModel> collection)
+        {
+            CollectionChange<ProcessCPUUsageModel> change = new();
+
             foreach (var item in ChildProcess.AllChildProcess)
             {
                 if (!collection.Contains(new ProcessCPUUsageModel(item)))
-                    collection.Add(new ProcessCPUUsageModel(item));
+                    change.ItemsToAdd.Add(new ProcessCPUUsageModel(item));
             }
 
-            List<ProcessCPUUsageModel> itemsToRemove = new List<ProcessCPUUsageModel>();
             foreach (var item in collection)
             {
+                item.Update();
                 if (!ChildProcess.AllChildProcess.Contains((uint)item.Pid) && item.Pid != currentPid)
-                    itemsToRemove.Add(item);
-                else
-                    item.Update();
+                    change.ItemsToRemove.Add(item);
             }
-            foreach (var item in itemsToRemove)
-                collection.Remove(item);
+            return change;
         }
 
-        public static void SyncWithObservableCollection(ObservableCollection<ProcessRAMUsageModel> collection)
+        public static CollectionChange<ProcessRAMUsageModel> SyncWithObservableCollection(ObservableCollection<ProcessRAMUsageModel> collection)
         {
+            CollectionChange<ProcessRAMUsageModel> change = new();
+
             foreach (var item in ChildProcess.AllChildProcess)
             {
                 if (!collection.Contains(new ProcessRAMUsageModel(item)))
-                    collection.Add(new ProcessRAMUsageModel(item));
+                    change.ItemsToAdd.Add(new ProcessRAMUsageModel(item));
             }
 
-            List<ProcessRAMUsageModel> itemsToRemove = new List<ProcessRAMUsageModel>();
             ProcessRAMUsageModel.MaxProcessMemory = 0;
             foreach (var item in collection)
             {
+                item.Update();
                 if (!ChildProcess.AllChildProcess.Contains((uint)item.Pid) && item.Pid != currentPid)
-                    itemsToRemove.Add(item);
+                    change.ItemsToRemove.Add(item);
                 else
                     ProcessRAMUsageModel.MaxProcessMemory = Math.Max(item.Process.PrivateMemorySize64, ProcessRAMUsageModel.MaxProcessMemory);
             }
-            foreach (var item in itemsToRemove)
-                collection.Remove(item);
-            foreach (var item in collection)
-                item.Update();
+
+            return change;
         }
     }
 }

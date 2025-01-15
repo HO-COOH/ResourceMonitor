@@ -98,11 +98,11 @@
             <TextBlock Text="{Binding DataModel.BatteryTime, Mode=OneWay}" Visibility="{Binding DataModel.BatteryTimeVisibility, Mode=OneWay}"/>
         </StackPanel>
 
-        <Popup PlacementTarget="{Binding ElementName=CPUButton}" x:Name="CPUPopup" StaysOpen="False" Placement="Top" Opened="CPUPopup_Opened">
+        <Popup PlacementTarget="{Binding ElementName=CPUButton}" x:Name="CPUPopup" StaysOpen="False" Placement="Top" Opened="CPUPopup_Opened" Closed="CPUPopup_Closed">
             <local:ProcessPanel x:Name="CPUPanel"/>
         </Popup>
 
-        <Popup x:Name="RAMPopup" PlacementTarget="{Binding ElementName=RAMButton}" StaysOpen="False" Placement="Top" Opened="RAMPopup_Opened">
+        <Popup x:Name="RAMPopup" PlacementTarget="{Binding ElementName=RAMButton}" StaysOpen="False" Placement="Top" Opened="RAMPopup_Opened" Closed="RAMPopup_Closed">
             <local:RAMPanel x:Name="RAMPanel"/>
         </Popup>
     </StackPanel>
