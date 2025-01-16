@@ -12,6 +12,8 @@ using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Settings;
 using VS2022;
 using Microsoft.VisualStudio.Threading;
+using VS2022Support;
+using System.Windows;
 
 namespace ResourceMonitor
 {
@@ -21,7 +23,7 @@ namespace ResourceMonitor
     /// </summary>
     internal sealed class Command1: AsyncPackage
     {
-        private static Disk disk;
+        public static Disk Disk;
 
         /*Options*/
 
@@ -42,6 +44,7 @@ namespace ResourceMonitor
         /// VS Package that provides this command, not null.
         /// </summary>
         private readonly AsyncPackage package;
+        //public static ToolWindowPane s_cpuToolWindow;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Command1"/> class.
@@ -80,7 +83,8 @@ namespace ResourceMonitor
             }
         }
 
-        static System.Windows.Controls.TextBlock s_textBlock;
+        //static System.Windows.Controls.TextBlock s_textBlock;
+        static VS2022Support.ResourceMonitorStatusBar s_textBlock;
         static VS2022.StatusBarInjector s_injector;
         /// <summary>
         /// Initializes the singleton instance of the command.
@@ -98,31 +102,19 @@ namespace ResourceMonitor
             var service = (await Instance.ServiceProvider.GetServiceAsync(typeof(SVsSettingsManager))) as IVsSettingsManager;
             ShellSettingsManager =  new ShellSettingsManager(service);
 
-            s_textBlock = new System.Windows.Controls.TextBlock()
+            s_textBlock = new VS2022Support.ResourceMonitorStatusBar
             {
                 VerticalAlignment = System.Windows.VerticalAlignment.Center,
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Right
             };
             s_injector = new VS2022.StatusBarInjector(System.Windows.Application.Current.MainWindow);
             s_injector.InjectControl(s_textBlock);
+            s_injected = s_injector.IsInjected(s_textBlock);
         }
 
 
 
-        private static string SizeUnitToStr(SizeUnit unit)
-        {
-            switch (unit)
-            {
-                case SizeUnit.KB:
-                    return "KB";
-                case SizeUnit.MB:
-                    return "MB";
-                case SizeUnit.GB:
-                    return "GB";
-            }
 
-            return "";
-        }
 
         private async Task GetSolutionDir()
         {
@@ -135,108 +127,59 @@ namespace ResourceMonitor
                     return;
 
                 var solutionDir = new FileInfo(env.Solution.FullName);
-                disk = solutionDir.Extension.Length == 0 ? 
+                Disk = solutionDir.Extension.Length == 0 ? 
                     new Disk(env.Solution.FullName) : 
                     new Disk(solutionDir.Directory.FullName);
             }
             catch
             {
-                disk = null;
+                Disk = null;
             }
         }
 
+        static bool s_injected = false;
+        DateTime lastUpdateTime = DateTime.Now;
         private async Task DoUpdate()
         {
             var statusBar = await ServiceProvider.GetServiceAsync(typeof(SVsStatusbar)) as IVsStatusbar;
             while (true)
             {
-                var options = OptionPage.Fields;
-                string str=string.Empty;
-                if (options.showCPU)
-                    str += $"CPU: {CPU.Usage} %";
-                if (options.showRam || options.showVSRam != VSRamKind.None)
+                try
                 {
-                    str += $"  RAM: ";
-
-                    switch (options.showVSRam)
-                    {
-                        case VSRamKind.None:
-                            break;
-                        case VSRamKind.MainProcessOnly:
-                            if (options.ramUsageUnit != SizeUnit.GB)
-                                str += $"{RAM.VsUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)}";
-                            else
-                                str += $"{RAM.VsUsage(SizeUnit.GB):0.#} GB";
-                            break;
-                        case VSRamKind.IncludeChildProcess:
-                            if (options.ramUsageUnit != SizeUnit.GB)
-                                str += $"{RAM.VsUsage(options.ramUsageUnit) + RAM.ChildProcessUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)}";
-                            else
-                                str += $"{RAM.VsUsage(options.ramUsageUnit) + RAM.ChildProcessUsage(options.ramUsageUnit):0.#} GB";
-                            break;
-                        case VSRamKind.SeparateMainAndChild:
-                            if (options.ramUsageUnit != SizeUnit.GB)
-                                str += $"{RAM.VsUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)} ({RAM.ChildProcessUsage(options.ramUsageUnit):0.} {SizeUnitToStr(options.ramUsageUnit)})";
-                            else
-                                str += $"{RAM.VsUsage(options.ramUsageUnit)} GB ({RAM.ChildProcessUsage(options.ramUsageUnit):0.#} GB)";
-                            break;
-                    }
+                    await TaskScheduler.Default;
+                    var refreshIntervalSeconds = Math.Max(OptionPage.Fields.refreshInterval, 1);
+                    var timeDiffMilliseconds = refreshIntervalSeconds * 1000 - (DateTime.Now - lastUpdateTime).TotalMilliseconds;
+                    if (timeDiffMilliseconds > 0)
+                        await Task.Delay((int)timeDiffMilliseconds);
 
 
-                    if (options.showVSRam != VSRamKind.None && options.showRam)
-                        str += " / ";
-
-                    if (options.showRam)
-                    {
-                        if(options.ramTotalUnit !=SizeUnit.GB)
-                            str += $"{RAM.TotalUsage(options.ramTotalUnit):0.}";
-                        else
-                            str += $"{RAM.TotalUsage(SizeUnit.GB):0.#}";
-                        str += SizeUnitToStr(options.ramTotalUnit);
-                    }
-                }
-                if (options.showNumProcess)
-                {
-                    str += $"({RAM.NumChild})";
-                }
-
-                if (options.showDisk)
-                {
-                    if(disk!=null)
-                        str += $"  Disk: {disk.SolutionSize(SizeUnit.MB):0.#}MB";
-                    else
+                    lastUpdateTime = DateTime.Now;
+                    ChildProcess.Update();
+                    if (Disk == null)
                         await GetSolutionDir();
-                }
+                    s_textBlock.Update();
 
-                if (options.showBatteryPercent || options.showBatteryTime)
-                {
-                    str += "  Battery:";
-                    if (options.showBatteryPercent)
-                        str += $" {Battery.BatteryPercent * 100} %";
-
-                    if (options.showBatteryTime)
+                    CPUToolWindow.Instance?.Update();
+                    RAMToolWindow.Instance?.Update();
+                    try
                     {
-                        var batteryRemain = Battery.BatteryRemains;
-                        str += $" {batteryRemain.Item1} h {batteryRemain.Item2} min";
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
                     }
-                }
+                    catch 
+                    {
+                        return;
+                    }
 
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
-                if (!s_injector.IsInjected(s_textBlock))
-                {
-                    s_injector.InjectControl(s_textBlock);
+                    if (!s_injected)
+                    {
+                        s_injector.InjectControl(s_textBlock);
+                        s_injected = s_injector.IsInjected(s_textBlock);
+                    }
+                    s_textBlock.RaiseDataChange();
+                    CPUToolWindow.Instance?.RaiseDataChange();
+                    RAMToolWindow.Instance?.RaiseDataChange();
                 }
-                s_textBlock.Text = str;
-
-                //detect theme changes and set the text color accordingly
-                var foregroundColor = s_injector.GetForegroundColor();
-                if(foregroundColor is System.Windows.Media.Color c)
-                {
-                    s_textBlock.Foreground = new System.Windows.Media.SolidColorBrush(c);
-                }
-                await TaskScheduler.Default;
-
-                await Task.Delay(Math.Max(options.refreshInterval, 1) * 1000);
+                catch { }
             }
         }
 

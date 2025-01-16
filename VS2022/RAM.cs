@@ -6,6 +6,7 @@ using System.Management;
 using System.Linq;
 using EnvDTE;
 using System.Security.Cryptography;
+using VS2022;
 
 namespace ResourceMonitor
 {
@@ -30,7 +31,7 @@ namespace ResourceMonitor
         private static float ToMB(float value) => value / 1024.0f / 1024.0f;
         private static float ToGB(float value) => value / 1024.0f / 1024.0f / 1024.0f;
 
-        private static float ConvertUnit(float value, SizeUnit unit)
+        public static float ConvertUnit(float value, SizeUnit unit)
         {
             switch (unit)
             {
@@ -46,68 +47,21 @@ namespace ResourceMonitor
         public static float TotalUsage(SizeUnit unit = SizeUnit.MB) => ConvertUnit((float)total - totalCounter.NextValue(), unit);
         public static float VsUsage(SizeUnit unit = SizeUnit.MB) => ConvertUnit(System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64, unit);
 
-        public static int NumChild = 0;
-
-        static private List<Win32.PROCESSENTRY32> getAllProcesses()
-        {
-            var handle = Win32.Kernel32.CreateToolhelp32Snapshot((uint)Win32.SnapshotFlags.Process, 0);
-            var processes = new List<Win32.PROCESSENTRY32>();
-            try
-            {
-                Win32.PROCESSENTRY32 entry = new Win32.PROCESSENTRY32()
-                {
-                    dwSize = (UInt32)System.Runtime.InteropServices.Marshal.SizeOf(typeof(Win32.PROCESSENTRY32))
-                };
-                if (Win32.Kernel32.Process32First(handle, ref entry))
-                {
-                    do
-                    {
-                        processes.Add(entry);
-                    } while (Win32.Kernel32.Process32Next(handle, ref entry));
-                }
-            }
-            catch
-            {
-            }
-            Win32.Kernel32.CloseHandle(handle);
-            return processes;
-        }
-
-        private static float getSumOfChildProcess(uint pid, List<Win32.PROCESSENTRY32> processes)
-        {
-            float sum = 0;
-            foreach (var process in processes)
-            {
-
-                if(process.th32ParentProcessID == pid)
-                {
-                    sum += getSumOfChildProcess(process.th32ProcessID, processes);
-                    ++NumChild;
-                }
-            }
-            try
-            {
-                sum += System.Diagnostics.Process.GetProcessById((int)pid).PrivateMemorySize64;
-            }
-            catch { }
-            return sum;
-        }
+        public static int NumChild => ChildProcess.AllChildProcess.Count;
 
         public static float ChildProcessUsage(SizeUnit unit = SizeUnit.GB)
         {
-            var allProcess = getAllProcesses();
-            float sum = 0;
-            NumChild = 0;
-            var currentPid = System.Diagnostics.Process.GetCurrentProcess().Id;
-            foreach(var process in allProcess)
+            float sum = ChildProcess.AllChildProcess == null? 0 : ChildProcess.AllChildProcess.Sum(process =>
             {
-                if (process.th32ParentProcessID == currentPid)
+                try
                 {
-                    sum += getSumOfChildProcess(process.th32ProcessID, allProcess);
-                    ++NumChild;
+                    return System.Diagnostics.Process.GetProcessById((int)process).PrivateMemorySize64;
                 }
-            }
-
+                catch
+                {
+                    return 0;
+                }
+            });
             return ConvertUnit(sum, unit);
         }
     }

@@ -13,11 +13,14 @@ namespace VS2022
 
         private System.Windows.Controls.Panel panel;
 
+        public static StatusBarInjector Instance;
+
         public StatusBarInjector(System.Windows.Window pMainWindow)
         {
             mainWindow = pMainWindow;
 
             FindStatusBar();
+            Instance = this;
         }
 
         private static System.Windows.DependencyObject FindChild(System.Windows.DependencyObject parent, string childName)
@@ -84,7 +87,7 @@ namespace VS2022
             }
         }
 
-        public void InjectControl(System.Windows.Controls.TextBlock pControl)
+        public void InjectControl(System.Windows.Controls.Control pControl)
         {
             RefindStatusBar();
 

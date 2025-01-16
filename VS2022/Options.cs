@@ -1,13 +1,7 @@
-﻿using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.Shell.Settings;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Settings;
+﻿using Microsoft.VisualStudio.Settings;
 using Microsoft.Win32;
 using System;
 using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -28,6 +22,13 @@ namespace ResourceMonitor
         SeparateMainAndChild,
         None
     }
+
+    public enum LabelKind
+    {
+        Text,
+        Icon
+    }
+
     [Serializable]
     public class Fields
     {
@@ -44,6 +45,7 @@ namespace ResourceMonitor
         public bool showDisk { get; set; } = true;
         public bool showBatteryPercent { get; set; } = true;
         public bool showBatteryTime { get; set; } = true;
+        public LabelKind labelKind { get; set; } = LabelKind.Icon;
     }
 
     public class OptionPage:DialogPage
@@ -127,19 +129,6 @@ namespace ResourceMonitor
             }
         }
 
-        [Category("RAM")]
-        [DisplayName("Show number of processes")]
-        [Description("Show number of processes")]
-        public bool ShowNumProcess
-        {
-            get => Fields.showNumProcess;
-            set
-            {
-                Fields.showNumProcess = value;
-                save();
-            }
-        }
-
         [Category("Disk")]
         [DisplayName("Show Solution Disk Usage")]
         [Description("Show Solution Disk Usage")]
@@ -179,6 +168,19 @@ namespace ResourceMonitor
             }
         }
 
+        [Category("LabelKind")]
+        [DisplayName("Show label as icon or text")]
+        [Description("Show label as icon or text")]
+        public LabelKind LabelKind
+        {
+            get => Fields.labelKind;
+            set
+            {
+                Fields.labelKind = value;
+                save();
+            }
+        }
+
         const string CollectionName = "ResourceMonitor.OptionPage";
 
         static public Fields Fields;
@@ -203,8 +205,10 @@ namespace ResourceMonitor
             Fields = new Fields();
         }
 
+        public static event EventHandler OptionsChanged;
         async void save()
         {
+            OptionsChanged.Invoke(null, null);
             var store = Command1.ShellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
             store.CreateCollection("ResourceMonitor.OptionPage");
             using (var sw = new StringWriter())
