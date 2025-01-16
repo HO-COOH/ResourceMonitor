@@ -10,21 +10,25 @@ For Visual Studio 2019 -> [Visual Studio Marketplace](https://marketplace.visual
 
 For Visual Studio 2022 -> [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=HO-COOH.ResourceMonitor2022)
 
-## Usage
-~~1. ``Tools`` -> ``Start Monitor``~~ No need. It automatically loads now :)
-![](./assets/1.png)
+## Features
 
-1. Now it will appear in the status bar.
+- This extension adds hardware usage on the status bar of your Visual Studio. 
 
-![](./assets/2.png)
+    ![](assets/overview.png)
 
-Now supports Visual Studio 2022 too:
+    left -> right: CPU, RAM, Disk, Battery
 
-![](./assets/3.png)
+- The CPU and RAM section are clickable buttons, which opens up a panel of all the child processes (and their child, so it's recursive) and their hardware usages.
+
+    ![](assets/ram-panel.png)
 
 ## Settings
 You can found the settings in `Tools` -> `Options` -> `ResourceMonitor`
 
+## Background
+Windows 11 `taskmgr` does not correctly group child process created by Visual Studio. `taskmgr` shows currently it does not have any child process, which in reality, has many and all of them lying under background process.
+![](assets/taskmgr.png)
+![](assets/taskmgr-child.png)
 
 
 ## Plans
