@@ -17,6 +17,7 @@ using VS2022;
 using Win32;
 using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Shell.Interop;
+using System;
 
 namespace VS2022Support
 {
@@ -68,7 +69,14 @@ namespace VS2022Support
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            (((Button)sender).DataContext as ProcessCPUUsageModel).Process.Kill();
+            try
+            {
+                (((Button)sender).DataContext as ProcessCPUUsageModel).Process.Kill();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Failed to kill process");
+            }
         }
 
         private static bool m_isPinned = false;

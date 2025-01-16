@@ -82,7 +82,14 @@ namespace VS2022Support
 
         private void KillProcessButton_Click(object sender, RoutedEventArgs e)
         {
-            (((Button)sender).DataContext as ProcessCPUUsageModel).Process.Kill();
+            try
+            {
+                (((Button)sender).DataContext as ProcessCPUUsageModel).Process.Kill();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Failed to kill process");
+            }
         }
     }
 }

@@ -65,7 +65,7 @@
         <Button x:Name="CPUButton" Margin="5,0,5,0" Click="CPUButton_Click" Visibility="{Binding DataModel.CPUVisibility, Mode=OneWay}">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="CPU: " Visibility="{Binding DataModel.LabelTextVisibility, Mode=OneWay}" Margin="0,0,-3,0"/>
-                <Grid Width="14" Height="{StaticResource GlyphSize}" Visibility="{Binding DataModel.LabelIconVisibility, Mode=OneWay}">
+                <Grid Width="13" Height="{StaticResource GlyphSize}" Visibility="{Binding DataModel.LabelIconVisibility, Mode=OneWay}">
                     <Path Stretch="Fill" Stroke="{DynamicResource {x:Static vs:VsBrushes.StatusBarTextKey}}" StrokeThickness="0.4" Data="{StaticResource CPUGlyph}"/>
                 </Grid>
                 <TextBlock Text="{Binding DataModel.CPU, Mode=OneWay}" HorizontalAlignment="Right"/>

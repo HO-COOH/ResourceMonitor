@@ -121,9 +121,9 @@
 
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                 <TextBlock Text="{Binding UsageText, Mode=OneWay}" VerticalAlignment="Center" Foreground="{DynamicResource {x:Static vs:VsBrushes.StatusBarTextKey}}"/>
-                                <Button x:Name="KillProcessButton" Click="KillProcessButton_Click" Visibility="Collapsed" Margin="4,0,0,0">
+                                <Button x:Name="KillProcessButton" Click="KillProcessButton_Click" Visibility="Collapsed" Margin="4,0,0,0" ToolTip="Terminate">
                                     <Grid Width="16" Height="16">
-                                        <Path Stretch="Fill" Fill="{DynamicResource {x:Static vs:VsBrushes.StatusBarTextKey}}" Stroke="{DynamicResource {x:Static vs:VsBrushes.StatusBarTextKey}}" StrokeThickness="1" Data="{StaticResource CancelSvg}"/>
+                                        <Path Stretch="Fill" Stroke="Red" StrokeThickness="1" Data="{StaticResource CancelSvg}"/>
                                     </Grid>
                                 </Button>
                             </StackPanel>
